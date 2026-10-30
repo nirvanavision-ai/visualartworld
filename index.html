@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!-- EDIT: your name and tagline -->
+  <title>ANGIE · Visual Artist</title>
+  <meta name="description" content="Welcome to my studio. Click the things on my shelf to explore my art, my hobbies and a little about me.">
+  <meta property="og:title" content="ANGIE · Visual Artist">
+  <meta property="og:description" content="Welcome to my studio. Click the things on my shelf to explore my art, my hobbies and a little about me.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://visualartworld.com/">
+  <meta property="og:image" content="https://visualartworld.com/images/og.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="room">
+
+    <header class="top">
+      <a class="brand" href="#" aria-label="Home">
+        <!-- EDIT: your name -->
+        <span class="brand-name">ANGIE</span>
+        <span class="brand-role">Visual Artist</span>
+      </a>
+      <p class="hint"><span class="hint-arrow" aria-hidden="true">↓</span> click the things on my shelf</p>
+    </header>
+
+    <!-- Hanging lamp: toggles day / night -->
+    <button class="lamp" id="lamp" type="button" aria-label="Turn the lamp on or off" aria-pressed="false">
+      <svg viewBox="0 0 120 220" aria-hidden="true">
+        <line x1="60" y1="0" x2="60" y2="120" class="cord"/>
+        <path d="M30 150 Q60 105 90 150 Z" class="shade"/>
+        <rect x="26" y="148" width="68" height="8" rx="4" class="shade-rim"/>
+        <circle cx="60" cy="164" r="10" class="bulb"/>
+        <ellipse cx="60" cy="200" rx="56" ry="34" class="glow"/>
+      </svg>
+    </button>
+
+    <main class="shelves" aria-label="My shelf">
+      <h1 class="sr-only">ANGIE, visual artist. Click the things on the shelf to explore.</h1>
+
+      <!-- ============ SHELF 1 ============ -->
+      <div class="shelf">
+        <div class="items">
+
+          <button class="item" data-panel="about" style="--w:150px">
+            <span class="label">About me</span>
+            <svg viewBox="0 0 150 170" aria-hidden="true">
+              <rect x="6"  y="30" width="24" height="140" rx="3" fill="var(--c-red)"/>
+              <rect x="10" y="50" width="16" height="4" fill="var(--paper)" opacity=".7"/>
+              <rect x="32" y="12" width="28" height="158" rx="3" fill="var(--c-navy)"/>
+              <rect x="37" y="40" width="18" height="40" rx="2" fill="var(--paper)" opacity=".85"/>
+              <rect x="62" y="40" width="20" height="130" rx="3" fill="var(--c-mustard)"/>
+              <rect x="62" y="150" width="20" height="5" fill="var(--obj-ink)" opacity=".2"/>
+              <rect x="84" y="24" width="26" height="146" rx="3" fill="var(--c-sage)"/>
+              <circle cx="97" cy="60" r="6" fill="var(--paper)" opacity=".8"/>
+              <g transform="rotate(18 112 170)">
+                <rect x="112" y="40" width="22" height="130" rx="3" fill="var(--c-rose)"/>
+                <rect x="116" y="60" width="14" height="3" fill="var(--paper)" opacity=".7"/>
+                <rect x="116" y="66" width="14" height="3" fill="var(--paper)" opacity=".7"/>
+              </g>
+            </svg>
+          </button>
+
+          <button class="item" data-panel="art" style="--w:170px">
+            <span class="label">My art</span>
+            <svg viewBox="0 0 170 170" aria-hidden="true">
+              <path d="M40 170 L60 120 M130 170 L110 120" stroke="var(--wood-dark)" stroke-width="6" stroke-linecap="round"/>
+              <rect x="10" y="4" width="150" height="130" rx="4" fill="var(--wood-dark)"/>
+              <rect x="20" y="14" width="130" height="110" fill="var(--paper)"/>
+              <circle cx="60" cy="58" r="26" fill="var(--c-mustard)"/>
+              <path d="M20 124 L20 92 Q60 70 90 96 T150 84 L150 124 Z" fill="var(--c-sage)"/>
+              <path d="M20 124 L20 108 Q70 96 110 112 T150 104 L150 124 Z" fill="var(--c-navy)"/>
+              <path d="M98 30 q14 -10 28 0 q-14 8 -28 0" fill="var(--c-red)"/>
+            </svg>
+          </button>
+
+          <button class="item" data-panel="photo" style="--w:130px">
+            <span class="label">Photography</span>
+            <svg viewBox="0 0 130 110" aria-hidden="true">
+              <rect x="20" y="14" width="34" height="16" rx="4" fill="var(--obj-ink)"/>
+              <rect x="4" y="26" width="122" height="80" rx="10" fill="var(--obj-ink)"/>
+              <rect x="4" y="50" width="122" height="30" fill="var(--c-rose)"/>
+              <circle cx="65" cy="66" r="30" fill="var(--paper)"/>
+              <circle cx="65" cy="66" r="23" fill="var(--obj-ink)"/>
+              <circle cx="65" cy="66" r="13" fill="var(--c-navy)"/>
+              <circle cx="59" cy="60" r="4" fill="var(--paper)" opacity=".8"/>
+              <circle cx="108" cy="38" r="5" fill="var(--c-mustard)" class="flash"/>
+            </svg>
+          </button>
+
+          <button class="item item-plant" data-action="wiggle" style="--w:110px" aria-label="A little plant (click to say hi)">
+            <span class="label">say hi 🌱</span>
+            <svg viewBox="0 0 110 160" aria-hidden="true">
+              <g class="leaves">
+                <path d="M55 100 C20 90 10 50 30 30 C45 55 55 70 55 100Z" fill="var(--c-sage)"/>
+                <path d="M55 100 C90 90 100 40 82 18 C66 45 56 70 55 100Z" fill="var(--c-sage-dark)"/>
+                <path d="M55 100 C50 60 52 25 58 4 C68 30 64 70 55 100Z" fill="var(--c-sage)"/>
+              </g>
+              <path d="M22 100 H88 L80 160 H30 Z" fill="var(--c-terracotta)"/>
+              <rect x="18" y="96" width="74" height="14" rx="3" fill="var(--c-terracotta-dark)"/>
+            </svg>
+          </button>
+
+        </div>
+        <div class="plank" aria-hidden="true"></div>
+      </div>
+
+      <!-- ============ SHELF 2 ============ -->
+      <div class="shelf">
+        <div class="items">
+
+          <button class="item" data-panel="hobbies" style="--w:120px">
+            <span class="label">Hobbies</span>
+            <svg viewBox="0 0 120 170" aria-hidden="true">
+              <rect x="62" y="4" width="7" height="100" rx="3" fill="var(--wood-dark)" transform="rotate(14 65 104)"/>
+              <path d="M70 0 l8 14 l-10 2 z" fill="var(--c-red)" transform="rotate(14 65 104)"/>
+              <rect x="44" y="10" width="7" height="100" rx="3" fill="var(--c-mustard)" transform="rotate(-10 47 110)"/>
+              <path d="M45 4 l6 0 l2 10 l-10 0 z" fill="var(--c-navy)" transform="rotate(-10 47 110)"/>
+              <rect x="56" y="24" width="6" height="90" rx="3" fill="var(--c-navy)"/>
+              <rect x="20" y="80" width="80" height="90" rx="8" fill="var(--glass)"/>
+              <rect x="20" y="80" width="80" height="12" rx="4" fill="var(--paper)" opacity=".5"/>
+              <path d="M20 130 Q40 122 60 132 T100 128 L100 162 Q100 170 92 170 H28 Q20 170 20 162Z" fill="var(--c-sage)" opacity=".55"/>
+              <rect x="32" y="104" width="56" height="22" rx="3" fill="var(--paper)"/>
+              <text x="60" y="120" text-anchor="middle" class="svg-hand">play</text>
+            </svg>
+          </button>
+
+          <button class="item" data-panel="music" style="--w:190px">
+            <span class="label">Music I love</span>
+            <svg viewBox="0 0 190 120" aria-hidden="true">
+              <rect x="4" y="30" width="182" height="86" rx="8" fill="var(--wood-dark)"/>
+              <rect x="10" y="22" width="170" height="20" rx="6" fill="var(--wood)"/>
+              <g class="vinyl">
+                <ellipse cx="80" cy="32" rx="62" ry="12" fill="var(--obj-ink)"/>
+                <ellipse cx="80" cy="32" rx="44" ry="8.5" fill="none" stroke="#444" stroke-width="1"/>
+                <ellipse cx="80" cy="32" rx="16" ry="3.5" fill="var(--c-red)"/>
+              </g>
+              <path d="M162 18 L150 10 L118 30" stroke="var(--paper)" stroke-width="4" fill="none" stroke-linecap="round"/>
+              <circle cx="162" cy="18" r="6" fill="var(--paper)"/>
+              <circle cx="30" cy="80" r="8" fill="var(--paper)" opacity=".8"/>
+              <circle cx="56" cy="80" r="8" fill="var(--paper)" opacity=".8"/>
+              <rect x="120" y="70" width="50" height="20" rx="4" fill="var(--obj-ink)" opacity=".35"/>
+            </svg>
+          </button>
+
+          <button class="item" data-panel="places" style="--w:120px">
+            <span class="label">Places</span>
+            <svg viewBox="0 0 120 170" aria-hidden="true">
+              <path d="M60 150 V170 M30 170 H90" stroke="var(--wood-dark)" stroke-width="8" stroke-linecap="round"/>
+              <path d="M18 70 A48 48 0 0 0 108 92" stroke="var(--wood-dark)" stroke-width="5" fill="none"/>
+              <g class="globe">
+                <circle cx="60" cy="70" r="44" fill="var(--c-navy)"/>
+                <path d="M30 50 q14 -12 28 -4 q4 12 -8 18 q-10 2 -8 14 q-8 4 -14 -6 q-2 -14 2 -22z" fill="var(--c-sage)"/>
+                <path d="M70 40 q14 2 20 14 q-6 8 -16 4 q-8 -6 -4 -18z" fill="var(--c-sage)"/>
+                <path d="M68 86 q12 -6 20 4 q-2 14 -14 18 q-10 -6 -6 -22z" fill="var(--c-sage)"/>
+              </g>
+            </svg>
+          </button>
+
+          <button class="item" data-panel="contact" style="--w:140px">
+            <span class="label">Say hello</span>
+            <svg viewBox="0 0 140 110" aria-hidden="true">
+              <rect x="14" y="10" width="112" height="76" rx="4" fill="var(--paper-dark)" transform="rotate(-8 70 48)"/>
+              <rect x="10" y="26" width="120" height="80" rx="4" fill="var(--paper)"/>
+              <path d="M10 30 L70 72 L130 30" stroke="var(--c-rose)" stroke-width="4" fill="none" stroke-linejoin="round"/>
+              <circle cx="70" cy="70" r="9" fill="var(--c-red)"/>
+              <rect x="100" y="34" width="20" height="24" rx="2" fill="var(--c-mustard)"/>
+            </svg>
+          </button>
+
+        </div>
+        <div class="plank" aria-hidden="true"></div>
+      </div>
+    </main>
+
+    <footer class="bottom">
+      <!-- EDIT: footer text -->
+      <p>© <span id="year"></span> ANGIE · visualartworld.com</p>
+    </footer>
+  </div>
+
+  <!-- =====================================================
+       PANELS (one per shelf object).
+       Replace everything in [square brackets] with your own content.
+       Put your photos in the /images folder using the same file names.
+       ===================================================== -->
+
+  <dialog class="panel" id="panel-about" aria-labelledby="t-about">
+    <button class="close" type="button" aria-label="Close">×</button>
+    <div class="panel-body">
+      <p class="kicker">About me</p>
+      <h2 id="t-about">Hi, I'm [Your Name].</h2>
+      <div class="split">
+        <figure class="photo photo-portrait">
+          <img src="images/portrait.jpg" alt="[Portrait of Your Name]" loading="lazy">
+          <figcaption class="note">that's me!</figcaption>
+        </figure>
+        <div class="prose">
+          <p class="lead">[One-sentence intro: who you are and what you make.]</p>
+          <p>[Paragraph 2: your story. Where you're from, how you got into visual art, what drives you.]</p>
+          <p>[Paragraph 3: what you're working on now, or what you'd love to do next.]</p>
+          <ul class="facts">
+            <li><strong>Based in</strong> [City, Country]</li>
+            <li><strong>Mediums</strong> [e.g. painting, digital illustration, photography]</li>
+            <li><strong>Currently</strong> [e.g. learning ceramics]</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="panel" id="panel-art" aria-labelledby="t-art">
+    <button class="close" type="button" aria-label="Close">×</button>
+    <div class="panel-body">
+      <p class="kicker">My art</p>
+      <h2 id="t-art">[A few pieces I'm proud of]</h2>
+      <p class="lead">[Short line about your style or the work below.]</p>
+      <div class="gallery">
+        <figure><img src="images/art-1.jpg" alt="[Artwork 1 title]" loading="lazy"><figcaption>[Title, year, medium]</figcaption></figure>
+        <figure><img src="images/art-2.jpg" alt="[Artwork 2 title]" loading="lazy"><figcaption>[Title, year, medium]</figcaption></figure>
+        <figure><img src="images/art-3.jpg" alt="[Artwork 3 title]" loading="lazy"><figcaption>[Title, year, medium]</figcaption></figure>
+        <figure><img src="images/art-4.jpg" alt="[Artwork 4 title]" loading="lazy"><figcaption>[Title, year, medium]</figcaption></figure>
+        <figure><img src="images/art-5.jpg" alt="[Artwork 5 title]" loading="lazy"><figcaption>[Title, year, medium]</figcaption></figure>
+        <figure><img src="images/art-6.jpg" alt="[Artwork 6 title]" loading="lazy"><figcaption>[Title, year, medium]</figcaption></figure>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="panel" id="panel-photo" aria-labelledby="t-photo">
+    <button class="close" type="button" aria-label="Close">×</button>
+    <div class="panel-body">
+      <p class="kicker">Photography</p>
+      <h2 id="t-photo">[Things I've seen through my lens]</h2>
+      <p class="lead">[What you like to photograph and why.]</p>
+      <div class="gallery gallery-tight">
+        <figure><img src="images/photo-1.jpg" alt="[Photo 1 description]" loading="lazy"></figure>
+        <figure><img src="images/photo-2.jpg" alt="[Photo 2 description]" loading="lazy"></figure>
+        <figure><img src="images/photo-3.jpg" alt="[Photo 3 description]" loading="lazy"></figure>
+        <figure><img src="images/photo-4.jpg" alt="[Photo 4 description]" loading="lazy"></figure>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="panel" id="panel-hobbies" aria-labelledby="t-hobbies">
+    <button class="close" type="button" aria-label="Close">×</button>
+    <div class="panel-body">
+      <p class="kicker">Hobbies</p>
+      <h2 id="t-hobbies">[What I do when I'm not working]</h2>
+      <div class="cards">
+        <article class="card">
+          <img src="images/hobby-1.jpg" alt="[Hobby 1]" loading="lazy">
+          <h3>[Hobby 1]</h3>
+          <p>[Two lines about it: how you got into it, what you love about it.]</p>
+        </article>
+        <article class="card">
+          <img src="images/hobby-2.jpg" alt="[Hobby 2]" loading="lazy">
+          <h3>[Hobby 2]</h3>
+          <p>[Two lines about it.]</p>
+        </article>
+        <article class="card">
+          <img src="images/hobby-3.jpg" alt="[Hobby 3]" loading="lazy">
+          <h3>[Hobby 3]</h3>
+          <p>[Two lines about it.]</p>
+        </article>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="panel" id="panel-music" aria-labelledby="t-music">
+    <button class="close" type="button" aria-label="Close">×</button>
+    <div class="panel-body">
+      <p class="kicker">Music I love</p>
+      <h2 id="t-music">[What's spinning in my studio]</h2>
+      <ol class="tracklist">
+        <li><span>[Artist]</span> <em>[Album or song]</em></li>
+        <li><span>[Artist]</span> <em>[Album or song]</em></li>
+        <li><span>[Artist]</span> <em>[Album or song]</em></li>
+        <li><span>[Artist]</span> <em>[Album or song]</em></li>
+        <li><span>[Artist]</span> <em>[Album or song]</em></li>
+      </ol>
+      <!-- Optional: paste a Spotify / YouTube embed code here -->
+    </div>
+  </dialog>
+
+  <dialog class="panel" id="panel-places" aria-labelledby="t-places">
+    <button class="close" type="button" aria-label="Close">×</button>
+    <div class="panel-body">
+      <p class="kicker">Places</p>
+      <h2 id="t-places">[Places that inspire me]</h2>
+      <ul class="places">
+        <li><strong>[Place 1]</strong><span>[Why it matters to you]</span></li>
+        <li><strong>[Place 2]</strong><span>[Why it matters to you]</span></li>
+        <li><strong>[Place 3]</strong><span>[Why it matters to you]</span></li>
+        <li><strong>[Next on my list]</strong><span>[Dream destination]</span></li>
+      </ul>
+    </div>
+  </dialog>
+
+  <dialog class="panel" id="panel-contact" aria-labelledby="t-contact">
+    <button class="close" type="button" aria-label="Close">×</button>
+    <div class="panel-body">
+      <p class="kicker">Say hello</p>
+      <h2 id="t-contact">[Let's make something together.]</h2>
+      <p class="lead">[One line on what you're open to: commissions, collaborations, or just a chat.]</p>
+      <ul class="links">
+        <li><a href="mailto:hello@visualartworld.com">hello@visualartworld.com</a></li>
+        <li><a href="https://instagram.com/[your-handle]" target="_blank" rel="noopener">Instagram</a></li>
+        <li><a href="https://[your-other-link]" target="_blank" rel="noopener">[Other link]</a></li>
+      </ul>
+    </div>
+  </dialog>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
