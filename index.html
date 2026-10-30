@@ -14,19 +14,57 @@
   <link rel="icon" href="images/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&family=Caveat:wght@500;700&family=Playfair+Display:wght@400;600&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="mode-3d">
   <!-- 3D room (js/room.js). Falls back to the 2D shelf below if 3D isn't supported. -->
   <div id="room3d" aria-hidden="true"></div>
-  <div id="labels3d"></div>
+  <div id="labels3d"><span id="chip3d" class="chip3d" aria-hidden="true"></span></div>
   <div class="ui3d">
-    <p class="hint3d">Drag to look around · tap anything to explore</p>
-    <div class="ui3d-buttons">
-      <button type="button" id="home3d" class="chip">Reset view</button>
-      <button type="button" id="viewToggle" class="chip">2D shelf</button>
+    <div class="intro3d">
+      <h1 class="title3d">Welcome to my studio</h1>
+      <p class="lede3d">Click around and see what you find, or use the menu for a quicker way through.</p>
+      <p class="found3d" id="found3d">0 of 14 discovered</p>
     </div>
+    <div class="actions3d">
+      <button type="button" class="pill3d" id="hints3d" aria-pressed="false">Hints</button>
+      <button type="button" class="pill3d" id="menu3d" aria-expanded="false" aria-controls="menuPanel">Menu</button>
+    </div>
+    <nav class="menu3d" id="menuPanel" aria-label="Quick links" hidden>
+      <div class="menu3d-head"><span>Quick links</span><button type="button" class="menu3d-close" aria-label="Close menu">×</button></div>
+      <button type="button" data-open="about">About</button>
+      <div class="menu3d-group">
+        <span>Work</span>
+        <button type="button" data-open="film">Filmmaking</button>
+        <button type="button" data-open="photo">Photography</button>
+        <button type="button" data-open="painting">Painting</button>
+        <button type="button" data-open="dj">Music &amp; DJ</button>
+        <button type="button" data-open="animation">Animation</button>
+        <button type="button" data-open="coding">Web &amp; games</button>
+        <button type="button" data-open="inventions">Inventions</button>
+        <button type="button" data-open="security">Ethical hacking &amp; OSINT</button>
+      </div>
+      <button type="button" data-open="impact">Awards &amp; impact</button>
+      <button type="button" data-open="contact">Contact</button>
+      <div class="menu3d-foot"><button type="button" class="menu3d-small" data-view-toggle>Switch to the 2D shelf</button></div>
+    </nav>
+    <div class="toast3d" id="toast3d" role="status"></div>
+    <nav class="sr-only" aria-label="Things in the studio">
+      <ul>
+        <li><button type="button" data-open="about">About me</button></li>
+        <li><button type="button" data-open="photo">Photography</button></li>
+        <li><button type="button" data-open="film">Filmmaking: Cahuenga film poster</button></li>
+        <li><button type="button" data-open="impact">Awards board</button></li>
+        <li><button type="button" data-open="painting">Painting</button></li>
+        <li><button type="button" data-open="animation">Animation zoetrope</button></li>
+        <li><button type="button" data-open="coding">Web &amp; games arcade</button></li>
+        <li><button type="button" data-open="inventions">Inventions blueprint</button></li>
+        <li><button type="button" data-open="security">Ethical hacking globe</button></li>
+        <li><button type="button" data-open="contact">Say hello</button></li>
+        <li><button type="button" data-open="dj">Music &amp; DJ table</button></li>
+      </ul>
+    </nav>
   </div>
 
   <div class="room">
@@ -37,6 +75,7 @@
         <span class="brand-role">Cinematographer · Director · Editor</span>
       </a>
       <p class="hint"><span class="hint-arrow" aria-hidden="true">↓</span> click the things on my shelf</p>
+      <button type="button" class="chip view3d" data-view-toggle>Walk into the 3D studio</button>
     </header>
 
     <!-- Hanging lamp: toggles day / night -->
@@ -537,10 +576,10 @@
       var ok = false;
       try { var c = document.createElement('canvas'); ok = !!(window.WebGLRenderingContext && (c.getContext('webgl2') || c.getContext('webgl'))); } catch (e) {}
       var pref = null; try { pref = localStorage.getItem('vaw-view'); } catch (e) {}
-      if (!ok || pref === '2d') { document.body.classList.remove('mode-3d'); var t = document.getElementById('viewToggle'); if (t) t.textContent = '3D room'; }
-      if (!ok) document.querySelector('.ui3d').hidden = true;
+      if (!ok || pref === '2d') document.body.classList.remove('mode-3d');
+      if (!ok) document.body.classList.add('no-3d');
       // if the 3D scene fails to start (old browser, script blocked), fall back to the shelf
-      setTimeout(function () { if (!document.body.classList.contains('room-ready')) { document.body.classList.remove('mode-3d'); document.querySelector('.ui3d').hidden = true; } }, 6000);
+      setTimeout(function () { if (!document.body.classList.contains('room-ready')) { document.body.classList.remove('mode-3d'); document.body.classList.add('no-3d'); } }, 6000);
     })();
   </script>
   <script type="module" src="js/room.js"></script>

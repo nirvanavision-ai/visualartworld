@@ -16,13 +16,40 @@
   });
 
   // 2D shelf <-> 3D room
-  var toggle = document.getElementById('viewToggle');
-  if (toggle) toggle.addEventListener('click', function () {
-    var to3d = !document.body.classList.contains('mode-3d');
-    document.body.classList.toggle('mode-3d', to3d);
-    toggle.textContent = to3d ? '2D shelf' : '3D room';
-    try { localStorage.setItem('vaw-view', to3d ? '3d' : '2d'); } catch (e) {}
-    window.dispatchEvent(new Event('resize'));
+  document.querySelectorAll('[data-view-toggle]').forEach(function (toggle) {
+    toggle.addEventListener('click', function () {
+      var to3d = !document.body.classList.contains('mode-3d');
+      document.body.classList.toggle('mode-3d', to3d);
+      try { localStorage.setItem('vaw-view', to3d ? '3d' : '2d'); } catch (e) {}
+      window.dispatchEvent(new Event('resize'));
+    });
+  });
+
+  // 3D overlay: menu drawer, hints, quick links
+  var menu = document.getElementById('menuPanel');
+  var menuBtn = document.getElementById('menu3d');
+  function setMenu(open) {
+    if (!menu) return;
+    menu.hidden = !open;
+    menuBtn.setAttribute('aria-expanded', String(open));
+    if (open) menu.querySelector('button').focus();
+  }
+  if (menuBtn) menuBtn.addEventListener('click', function () { setMenu(menu.hidden); });
+  var menuClose = document.querySelector('.menu3d-close');
+  if (menuClose) menuClose.addEventListener('click', function () { setMenu(false); menuBtn.focus(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && menu && !menu.hidden) setMenu(false); });
+  document.querySelectorAll('[data-open]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      setMenu(false);
+      if (window.room3dOpen && document.body.classList.contains('mode-3d')) window.room3dOpen(btn.dataset.open);
+      else openPanel(btn.dataset.open);
+    });
+  });
+  var hintsBtn = document.getElementById('hints3d');
+  if (hintsBtn) hintsBtn.addEventListener('click', function () {
+    var on = hintsBtn.getAttribute('aria-pressed') !== 'true';
+    hintsBtn.setAttribute('aria-pressed', String(on));
+    window.dispatchEvent(new CustomEvent('vaw:hints', { detail: on }));
   });
 
   // Close panels (close button, backdrop click, Esc)
