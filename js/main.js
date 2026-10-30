@@ -57,14 +57,18 @@
 
   // Until a photo is uploaded, show a labelled placeholder naming the file to add
   document.querySelectorAll('.panel img').forEach(function (img) {
-    img.addEventListener('error', function () {
-      var name = (img.getAttribute('src') || '').split('/').pop();
+    img.addEventListener('error', function onErr() {
+      // first try the copy still hosted on the old Webflow site, if one is listed
+      var fb = img.getAttribute('data-fallback');
+      if (fb && img.getAttribute('src') !== fb) { img.setAttribute('data-local', img.getAttribute('src')); img.src = fb; return; }
+      img.removeEventListener('error', onErr);
+      var name = (img.getAttribute('data-local') || img.getAttribute('src') || '').split('/').pop();
       var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">' +
         '<rect width="300" height="300" fill="#efe3cf"/>' +
         '<text x="150" y="140" text-anchor="middle" font-family="sans-serif" font-size="18" fill="#8a5a33">add photo</text>' +
         '<text x="150" y="168" text-anchor="middle" font-family="monospace" font-size="16" fill="#8a5a33">images/' + name + '</text></svg>';
       img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
-    }, { once: true });
+    });
   });
 
   var y = document.getElementById('year');
