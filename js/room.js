@@ -23,7 +23,7 @@ renderer.shadowMap.type = THREE.VSMShadowMap;
 stage.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x9a8d7c);
+scene.background = new THREE.Color(0x24171a);
 // soft studio reflections: a small room of light panels baked into an env map
 (function environment() {
   const env = new THREE.Scene();
@@ -41,7 +41,7 @@ const camera = new THREE.PerspectiveCamera(30, stage.clientWidth / stage.clientH
 
 // ---------- palette & helpers ----------
 const C = {
-  wall: 0xe6dfd3, floor: 0xc4a684, skirting: 0xf3f0ea, oak: 0xc9a982, oakDark: 0xb28f68,
+  wall: 0xe6dfd3, floor: 0xc4a684, skirting: 0x1f1517, oak: 0xc9a982, oakDark: 0xb28f68,
   ink: 0x2a2724, paper: 0xf5f1ea, linen: 0xd9cfbf, stone: 0xd8cbb6, travertine: 0xe2d6c2,
   black: 0x1d1c1b, brass: 0xb89a62, white: 0xf3f1ec, pom: 0xe4954a, pomLight: 0xf6c58c,
 };
@@ -109,35 +109,51 @@ let seed = 7;
 const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
 
 // ---------- room shell ----------
-// midtone designer wallpaper: taupe grasscloth with a tone-on-tone arch lattice
+// dark designer wallpaper: original baroque damask in antique gold on a deep oxblood-black ground
 const wallTex = canvasTexture(512, 512, (g, w, h) => {
-  g.fillStyle = '#9a8d7c'; g.fillRect(0, 0, w, h);
-  for (let y = 0; y < h; y += 1.5) { // woven grasscloth fibres
-    const v = rand();
-    g.fillStyle = v > 0.5 ? `rgba(255,248,236,${0.03 + rand() * 0.05})` : `rgba(60,48,36,${0.03 + rand() * 0.06})`;
-    g.fillRect(0, y, w, 1 + rand());
-  }
-  for (let x = 0; x < w; x += 64) { g.fillStyle = 'rgba(60,48,36,.05)'; g.fillRect(x, 0, 1, h); }
-  const arch = (cx, cy, r) => {
-    g.beginPath(); g.moveTo(cx - r, cy + r * 1.6); g.lineTo(cx - r, cy); g.arc(cx, cy, r, Math.PI, 0); g.lineTo(cx + r, cy + r * 1.6); g.stroke();
+  const bg = g.createLinearGradient(0, 0, 0, h);
+  bg.addColorStop(0, '#2b1a1c'); bg.addColorStop(1, '#22151a');
+  g.fillStyle = bg; g.fillRect(0, 0, w, h);
+  for (let y = 0; y < h; y += 2) { g.fillStyle = `rgba(${rand() > 0.5 ? '255,220,180' : '0,0,0'},${0.015 + rand() * 0.03})`; g.fillRect(0, y, w, 1); }
+  // one half of the ornament; drawn twice, mirrored, for a symmetric damask
+  const half = () => {
+    g.beginPath();
+    g.moveTo(0, -150); g.bezierCurveTo(40, -120, 70, -80, 30, -40);
+    g.bezierCurveTo(90, -60, 120, -10, 80, 30);
+    g.bezierCurveTo(130, 40, 120, 110, 60, 120);
+    g.bezierCurveTo(50, 150, 20, 160, 0, 170);
+    g.stroke();
+    g.beginPath(); g.moveTo(30, -40); g.bezierCurveTo(10, -10, 20, 20, 0, 40); g.stroke();
+    g.beginPath(); g.moveTo(80, 30); g.bezierCurveTo(50, 50, 40, 80, 60, 120); g.stroke();
+    // curling acanthus leaves
+    for (const [x, y, r, a] of [[95, -55, 16, 0.4], [118, 70, 20, -0.3], [55, -105, 12, 0.9], [35, 150, 12, -0.8]]) {
+      g.beginPath(); g.arc(x, y, r, a, a + Math.PI * 1.5); g.stroke();
+      g.beginPath(); g.arc(x + r * 0.35, y, r * 0.45, a, a + Math.PI * 1.4); g.stroke();
+    }
+    g.beginPath(); g.ellipse(26, 70, 9, 22, 0.3, 0, 7); g.fill();
+    g.beginPath(); g.ellipse(48, -12, 6, 15, -0.6, 0, 7); g.fill();
   };
-  g.lineWidth = 2;
-  g.strokeStyle = 'rgba(214,198,170,.28)';
-  for (let row = 0; row < 3; row++) for (let col = 0; col < 3; col++) {
-    const cx = col * 256 + (row % 2 ? 128 : 0), cy = row * 256 - 60;
-    arch(cx, cy, 92); arch(cx, cy, 70);
-  }
-  g.fillStyle = 'rgba(214,198,170,.3)';
-  for (let row = 0; row < 3; row++) for (let col = 0; col < 3; col++) {
-    const cx = col * 256 + (row % 2 ? 0 : 128), cy = row * 256 + 70;
-    g.beginPath(); g.arc(cx, cy, 6, 0, 7); g.fill();
+  const ornament = (cx, cy, k) => {
+    g.save(); g.translate(cx, cy); g.scale(k, k);
+    g.strokeStyle = 'rgba(196,158,92,.62)'; g.fillStyle = 'rgba(196,158,92,.5)'; g.lineWidth = 3.2 / k; g.lineCap = 'round';
+    half(); g.scale(-1, 1); half();
+    g.beginPath(); g.ellipse(0, 10, 12, 30, 0, 0, 7); g.fill();
+    g.beginPath(); g.arc(0, -150, 7, 0, 7); g.fill();
+    g.restore();
+  };
+  ornament(128, 128, 0.62); ornament(384, 384, 0.62);
+  ornament(384, -128, 0.62); ornament(128, 640, 0.62); ornament(-128, 384, 0.62); ornament(640, 128, 0.62);
+  // small fleurons between the medallions
+  g.fillStyle = 'rgba(196,158,92,.45)';
+  for (const [x, y] of [[384, 128], [128, 384], [0, 0], [512, 0], [0, 512], [512, 512], [256, 256]]) {
+    for (let k = 0; k < 4; k++) { g.beginPath(); g.ellipse(x + Math.cos(k * Math.PI / 2) * 9, y + Math.sin(k * Math.PI / 2) * 9, 4, 8, k * Math.PI / 2, 0, 7); g.fill(); }
   }
 });
 wallTex.wrapS = wallTex.wrapT = THREE.RepeatWrapping;
 wallTex.repeat.set(26, 15);
 const wallBump = grainTexture(256, true);
 wallBump.repeat.set(26, 15);
-const wallMat = new THREE.MeshStandardMaterial({ map: wallTex, roughness: 0.82, bumpMap: wallBump, bumpScale: 0.8 });
+const wallMat = new THREE.MeshStandardMaterial({ map: wallTex, roughness: 0.7, metalness: 0.08, bumpMap: wallBump, bumpScale: 0.6 });
 const wallMesh = mesh(new THREE.PlaneGeometry(70, 40), wallMat, 0, 15, 0);
 wallMesh.castShadow = false;
 scene.add(wallMesh);
@@ -145,21 +161,21 @@ scene.add(wallMesh);
 const floorTex = canvasTexture(1024, 1024, (g, w, h) => {
   const plank = 128;
   for (let i = 0; i < w / plank; i++) {
-    const s = 190 + Math.floor(rand() * 18);
-    g.fillStyle = `rgb(${s},${Math.round(s * 0.84)},${Math.round(s * 0.66)})`;
+    const s = 92 + Math.floor(rand() * 16);
+    g.fillStyle = `rgb(${s},${Math.round(s * 0.66)},${Math.round(s * 0.46)})`;
     g.fillRect(0, i * plank, w, plank);
     for (let k = 0; k < 90; k++) { // grain
-      g.strokeStyle = `rgba(120,85,50,${0.04 + rand() * 0.07})`; g.lineWidth = 0.6 + rand() * 1.4;
+      g.strokeStyle = `rgba(30,18,10,${0.06 + rand() * 0.1})`; g.lineWidth = 0.6 + rand() * 1.4;
       const y = i * plank + rand() * plank;
       g.beginPath(); g.moveTo(0, y); g.bezierCurveTo(w * 0.3, y + (rand() - 0.5) * 8, w * 0.7, y + (rand() - 0.5) * 8, w, y + (rand() - 0.5) * 4); g.stroke();
     }
-    g.fillStyle = 'rgba(90,60,35,.35)'; g.fillRect(0, i * plank, w, 2);
+    g.fillStyle = 'rgba(20,12,6,.5)'; g.fillRect(0, i * plank, w, 2);
     g.fillRect(((i * 397) % w), i * plank, 2, plank);
   }
 });
 floorTex.wrapS = floorTex.wrapT = THREE.RepeatWrapping;
 floorTex.repeat.set(6, 3);
-const floorMat = new THREE.MeshStandardMaterial({ map: floorTex, roughness: 0.55 });
+const floorMat = new THREE.MeshStandardMaterial({ map: floorTex, roughness: 0.38 });
 const floor = mesh(new THREE.PlaneGeometry(70, 24), floorMat, 0, 0, 12);
 floor.rotation.x = -Math.PI / 2;
 floor.castShadow = false;
@@ -748,56 +764,67 @@ vessel(slots[3][0], 0.3, 0.72, 0.2, C.stone);
 })();
 
 // ---------- the Pomeranian ----------
-(function pomeranian() {
+(function pomeranian() { // Wookie: orange sable Pomeranian, cream face and tail plume
   const g = new THREE.Group();
-  const fur = mat(C.pom, { roughness: 1 });
-  const light = mat(C.pomLight, { roughness: 1 });
-  const dark = mat(0x1b1410, { roughness: 0.4 });
+  const fur = mat(0xc8692a, { roughness: 1 });
+  const chest = mat(0xdc8f4c, { roughness: 1 });
+  const sable = mat(0x7d3f1a, { roughness: 1 });
+  const cream = mat(0xf1dfbf, { roughness: 1 });
+  const dark = mat(0x14100d, { roughness: 0.25 });
   const fluffGeo = new THREE.IcosahedronGeometry(1, 1);
-  const tuft = (r, m, x, y, z) => { const t = mesh(fluffGeo, m, x, y, z); t.scale.setScalar(r); t.rotation.set(rand() * 3, rand() * 3, 0); return t; };
-  // sitting body: a pear of fluffy tufts
+  const tuft = (r, m, x, y, z) => { const t = mesh(fluffGeo, m, x, y, z); t.scale.set(r * (0.9 + rand() * 0.2), r * (0.9 + rand() * 0.2), r); t.rotation.set(rand() * 3, rand() * 3, 0); return t; };
+  // sitting body
   const body = new THREE.Group();
-  body.add(tuft(0.42, fur, 0, 0.4, -0.05));
-  body.add(tuft(0.36, fur, 0, 0.72, 0.02));
-  for (let i = 0; i < 14; i++) { // ruff around the chest
-    const a = (i / 14) * Math.PI * 2;
-    body.add(tuft(0.15 + rand() * 0.05, i % 3 ? fur : light, Math.cos(a) * 0.32, 0.86 + Math.sin(a * 2) * 0.04, Math.sin(a) * 0.24 + 0.06));
+  body.add(tuft(0.4, fur, 0, 0.38, -0.06));
+  body.add(tuft(0.34, chest, 0, 0.7, 0.04));
+  for (let i = 0; i < 18; i++) { // big mane around the chest and neck
+    const a = (i / 18) * Math.PI * 2;
+    const m = Math.sin(a) > 0.3 ? chest : (i % 4 ? fur : sable);
+    body.add(tuft(0.14 + rand() * 0.07, m, Math.cos(a) * 0.36, 0.9 + Math.sin(a * 2) * 0.05, Math.sin(a) * 0.26 + 0.06));
   }
-  body.add(tuft(0.24, light, 0, 0.66, 0.24));
-  // front legs and paws
-  [-0.13, 0.13].forEach(x => { body.add(cyl(0.065, 0.075, 0.38, fur, x, 0.2, 0.24, 10)); body.add(tuft(0.085, light, x, 0.05, 0.3)); });
-  // back haunches
-  [-0.3, 0.3].forEach(x => body.add(tuft(0.2, fur, x, 0.2, -0.05)));
+  body.add(tuft(0.22, chest, 0, 0.62, 0.26));
+  body.add(tuft(0.16, sable, 0, 0.62, -0.32)); // darker sable along the back
+  // slim front legs, cream-tipped paws
+  [-0.12, 0.12].forEach(x => { body.add(cyl(0.055, 0.065, 0.4, chest, x, 0.2, 0.24, 10)); body.add(tuft(0.075, mat(0xe8c79a, { roughness: 1 }), x, 0.04, 0.3)); });
+  [-0.29, 0.29].forEach(x => body.add(tuft(0.19, fur, x, 0.2, -0.04)));
   g.add(body);
-  // head
+  // head: fox-like face, cream muzzle mask, dark eyes and nose, tongue out
   const head = new THREE.Group();
-  head.add(tuft(0.27, fur, 0, 0, 0));
-  for (let i = 0; i < 9; i++) { const a = (i / 9) * Math.PI * 2; head.add(tuft(0.1, fur, Math.cos(a) * 0.24, Math.sin(a) * 0.2, -0.04)); }
-  head.add(tuft(0.15, light, 0, -0.07, 0.17)); // muzzle
-  head.add(sphere(0.045, dark, 0, -0.03, 0.31)); // nose
-  [-0.1, 0.1].forEach(x => {
-    head.add(sphere(0.045, dark, x, 0.07, 0.22));
-    head.add(sphere(0.013, mat(0xffffff), x + 0.015, 0.085, 0.262));
-    const ear = mesh(new THREE.ConeGeometry(0.075, 0.17, 10), fur, x * 1.5, 0.27, -0.02);
-    ear.rotation.z = -x * 2.2;
+  head.add(tuft(0.25, fur, 0, 0, 0));
+  for (let i = 0; i < 11; i++) { const a = (i / 11) * Math.PI * 2; head.add(tuft(0.1, i % 3 ? fur : sable, Math.cos(a) * 0.25, Math.sin(a) * 0.21, -0.05)); }
+  head.add(tuft(0.065, sable, 0, 0.16, 0.14)); // darker forehead
+  head.add(tuft(0.12, cream, 0, -0.08, 0.17)); // muzzle
+  const snout = sphere(0.07, cream, 0, -0.07, 0.25);
+  snout.scale.set(1, 0.8, 1);
+  head.add(snout);
+  head.add(sphere(0.04, dark, 0, -0.035, 0.32)); // nose
+  head.add(sphere(0.03, mat(0x3a2418, { roughness: 1 }), -0.06, -0.13, 0.24)); // dark lip shading
+  head.add(sphere(0.03, mat(0x3a2418, { roughness: 1 }), 0.06, -0.13, 0.24));
+  [-0.095, 0.095].forEach(x => {
+    head.add(sphere(0.042, dark, x, 0.055, 0.22));
+    head.add(sphere(0.012, mat(0xffffff), x + 0.014, 0.07, 0.258));
+    const ear = new THREE.Group();
+    ear.add(mesh(new THREE.ConeGeometry(0.08, 0.19, 10), fur, 0, 0, 0));
+    ear.add(mesh(new THREE.ConeGeometry(0.035, 0.08, 8), sable, 0, 0.07, 0));
+    ear.position.set(x * 1.55, 0.27, -0.02);
+    ear.rotation.z = -x * 2.3;
     head.add(ear);
   });
-  const tongue = mesh(new THREE.SphereGeometry(0.035, 10, 8), mat(0xe86a7a), 0, -0.15, 0.25);
-  tongue.scale.set(1, 0.6, 0.6);
+  const tongue = mesh(new THREE.SphereGeometry(0.045, 12, 8), mat(0xe57a90, { roughness: 0.4 }), 0, -0.17, 0.26);
+  tongue.scale.set(0.9, 1.1, 0.45);
   head.add(tongue);
-  head.position.set(0, 1.18, 0.1);
+  head.position.set(0, 1.17, 0.1);
   g.add(head);
-  // plumed tail curled over the back
+  // cream plumed tail curled over the back, sable tips
   const tail = new THREE.Group();
-  for (let i = 0; i < 7; i++) { const t = i / 6; tail.add(tuft(0.12 + Math.sin(t * Math.PI) * 0.09, i % 2 ? fur : light, Math.sin(t * 2.4) * 0.22, 0.1 + t * 0.4 - t * t * 0.25, -t * 0.15)); }
-  tail.position.set(0.18, 0.6, -0.35);
+  for (let i = 0; i < 9; i++) { const t = i / 8; tail.add(tuft(0.11 + Math.sin(t * Math.PI) * 0.1, i > 6 ? sable : (i % 2 ? cream : mat(0xe9d0a8, { roughness: 1 })), Math.sin(t * 2.4) * 0.24, 0.1 + t * 0.45 - t * t * 0.28, -t * 0.16)); }
+  tail.position.set(0.16, 0.6, -0.36);
   g.add(tail);
-  g.scale.setScalar(0.85);
   pieces.pom = g;
   pieces.pomHead = head;
   pieces.pomTail = tail;
   scene.add(g);
-  register(g, 'pup', 'Meet the studio pup', { action: 'pup', lift: 0.02 });
+  register(g, 'pup', 'Wookie', { panel: 'wookie', lift: 0.02 });
 })();
 
 // ---------- layout: wide (desktop) and tall (phone) arrangements ----------
@@ -815,7 +842,7 @@ function layout() {
     place(pieces.painting, -0.75, 4.45, 0);
     place(pieces.bookcase, 4.75, 0, 0);
     place(pieces.dj, -1.05, 0, 0.9, 1.12);
-    place(pieces.pom, 1.35, 0, 2.3, 0.85);
+    place(pieces.pom, 1.35, 0, 2.3, 0.72);
     pieces.pom.rotation.y = -0.35;
     rect = { x0: -8.3, x1: 8.5, y0: -1.3, y1: 9.1 };
   } else {
@@ -825,7 +852,7 @@ function layout() {
     place(pieces.painting, 2.6, 9.8, 0, 0.75);
     place(pieces.bookcase, 0, 0, 0, 0.95);
     place(pieces.dj, -0.6, 0, 2.6, 1.0);
-    place(pieces.pom, 2.1, 0, 3.2, 0.8);
+    place(pieces.pom, 2.1, 0, 3.2, 0.68);
     pieces.pom.rotation.y = -0.5;
     rect = { x0: -3.7, x1: 3.7, y0: -2.8, y1: 14.8 };
   }
@@ -877,7 +904,7 @@ function applyTheme() {
   fill.intensity = night ? 0.08 : 0.5;
   moonLight.intensity = night ? 6 : 0;
   pieces.moon.material.emissiveIntensity = night ? 1.1 : 0.05;
-  scene.background.set(night ? 0x2a2620 : 0x9a8d7c);
+  scene.background.set(night ? 0x120b0d : 0x24171a);
   scene.environmentIntensity = night ? 0.15 : 0.55;
 }
 new MutationObserver(applyTheme).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
@@ -933,7 +960,7 @@ function activate(key) {
   setHover(null);
   if (t.action === 'lamp') { document.getElementById('lamp')?.click(); toast(night ? 'Lights on' : 'Moonlight'); return; }
   if (t.action === 'wiggle') { anim.wiggle = 1; toast('Thanks for the water!'); return; }
-  if (t.action === 'pup') { anim.wag = 1; toast('Woof! The studio pup approves of you.'); return; }
+  if (key === 'pup') { anim.wag = 1; toast('Woof! Wookie says hi'); }
   // ease the camera toward the object, then open its panel
   const c = new THREE.Box3().setFromObject(t.group).getCenter(new THREE.Vector3());
   busy = true;

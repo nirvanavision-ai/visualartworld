@@ -424,13 +424,13 @@ body {
 #room3d, #labels3d, .ui3d { display: none; }
 .view3d { display: none; margin-left: auto; }
 body:not(.mode-3d):not(.no-3d) .view3d { display: inline-block; }
-body.mode-3d { overflow: hidden; background: #9a8d7c; --d-ink: #2a2724; --d-soft: #4a4239; --d-gold: #9a7b48; --d-card: rgba(247, 244, 238, .97); --display: "Playfair Display", var(--serif); --ui: "Karla", var(--sans); }
+body.mode-3d { overflow: hidden; background: #24171a; --d-ink: #2a2724; --d-soft: #4a4239; --d-gold: #9a7b48; --d-card: rgba(247, 244, 238, .97); --display: "Playfair Display", var(--serif); --ui: "Karla", var(--sans); }
 body.mode-3d .room { display: none; }
 body.mode-3d #room3d { display: block; position: fixed; inset: 0; z-index: 1; touch-action: manipulation; }
 body.mode-3d #room3d canvas { display: block; width: 100%; height: 100%; }
 body.mode-3d #labels3d { display: block; position: fixed; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; }
 body.mode-3d .ui3d { display: block; position: fixed; inset: 0; z-index: 3; pointer-events: none; font-family: var(--ui); color: var(--d-ink); }
-body.mode-3d .ui3d::before { content: ""; position: absolute; inset: 0; background: radial-gradient(120% 90% at 50% 40%, transparent 60%, rgba(60, 45, 30, .12)); }
+body.mode-3d .ui3d::before { content: ""; position: absolute; inset: 0; background: radial-gradient(120% 90% at 50% 40%, transparent 55%, rgba(10, 5, 6, .4)); }
 
 .chip3d {
   position: absolute; left: 0; top: 0;
@@ -528,3 +528,9 @@ body.mode-3d #panel-about { background: linear-gradient(90deg, #efe4d2 0, #f6eee
   body.mode-3d #panel-about .prose { border-left: 0; padding: 0 24px 32px; }
   body.mode-3d #panel-about { background: #f3eadb; }
 }
+
+/* overlay text sits on the dark wallpaper */
+.title3d { color: #f6efe4; text-shadow: 0 2px 24px rgba(0,0,0,.45); }
+.lede3d { color: #e2d6c4; }
+.found3d { color: #cbb894; }
+.photo-wookie img { max-height: 360px; object-fit: cover; object-position: 50% 30%; }
