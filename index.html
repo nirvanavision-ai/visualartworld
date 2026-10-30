@@ -17,7 +17,18 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="mode-3d">
+  <!-- 3D room (js/room.js). Falls back to the 2D shelf below if 3D isn't supported. -->
+  <div id="room3d" aria-hidden="true"></div>
+  <div id="labels3d"></div>
+  <div class="ui3d">
+    <p class="hint3d">Drag to look around · tap anything to explore</p>
+    <div class="ui3d-buttons">
+      <button type="button" id="home3d" class="chip">Reset view</button>
+      <button type="button" id="viewToggle" class="chip">2D shelf</button>
+    </div>
+  </div>
+
   <div class="room">
 
     <header class="top">
@@ -519,5 +530,19 @@
   </dialog>
 
   <script src="js/main.js"></script>
+  <script type="importmap">{ "imports": { "three": "./js/vendor/three.module.min.js" } }</script>
+  <script>
+    // Use the 2D shelf if WebGL isn't available or the visitor chose it last time
+    (function () {
+      var ok = false;
+      try { var c = document.createElement('canvas'); ok = !!(window.WebGLRenderingContext && (c.getContext('webgl2') || c.getContext('webgl'))); } catch (e) {}
+      var pref = null; try { pref = localStorage.getItem('vaw-view'); } catch (e) {}
+      if (!ok || pref === '2d') { document.body.classList.remove('mode-3d'); var t = document.getElementById('viewToggle'); if (t) t.textContent = '3D room'; }
+      if (!ok) document.querySelector('.ui3d').hidden = true;
+      // if the 3D scene fails to start (old browser, script blocked), fall back to the shelf
+      setTimeout(function () { if (!document.body.classList.contains('room-ready')) { document.body.classList.remove('mode-3d'); document.querySelector('.ui3d').hidden = true; } }, 6000);
+    })();
+  </script>
+  <script type="module" src="js/room.js"></script>
 </body>
 </html>

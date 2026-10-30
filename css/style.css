@@ -418,3 +418,36 @@ body {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+
+/* ---------- 3D room mode ---------- */
+#room3d, #labels3d, .ui3d { display: none; }
+body.mode-3d { overflow: hidden; }
+body.mode-3d .room .shelves, body.mode-3d .room .bottom, body.mode-3d .lamp { display: none; }
+body.mode-3d .room { min-height: 0; position: fixed; inset: 0 0 auto 0; z-index: 3; pointer-events: none; }
+body.mode-3d .room .top { pointer-events: auto; }
+body.mode-3d #room3d { display: block; position: fixed; inset: 0; z-index: 1; touch-action: none; }
+body.mode-3d #room3d canvas { display: block; width: 100%; height: 100%; }
+body.mode-3d #labels3d { display: block; position: fixed; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; }
+body.mode-3d .ui3d { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 3; justify-content: space-between; align-items: flex-end; gap: 12px; padding: 0 16px max(16px, env(safe-area-inset-bottom)); pointer-events: none; }
+.hint3d { margin: 0; font-family: var(--hand); font-size: 22px; color: var(--ink-soft); background: color-mix(in srgb, var(--wall) 80%, transparent); padding: 4px 12px; border-radius: 999px; }
+.ui3d-buttons { display: flex; gap: 8px; pointer-events: auto; }
+.chip { font: 500 14px var(--sans); border: 0; border-radius: 999px; padding: 10px 16px; background: var(--ink); color: var(--wall); cursor: pointer; }
+.chip:hover { background: var(--c-red); color: #fff; }
+.label3d {
+  position: absolute; left: 0; top: 0;
+  font-family: var(--hand); font-size: 19px; line-height: 1;
+  padding: 5px 11px 7px; border: 0; border-radius: 999px;
+  background: rgba(42, 38, 34, .82); color: #fff8ec;
+  white-space: nowrap; cursor: pointer; pointer-events: auto;
+  transition: opacity .25s, background .2s;
+}
+.label3d.is-hover, .label3d:hover, .label3d:focus-visible { background: var(--c-red); outline: none; }
+body.mode-2d-only .ui3d { display: none; }
+@media (max-width: 720px) {
+  .label3d { font-size: 16px; padding: 4px 9px 6px; }
+  .hint3d { font-size: 18px; }
+  body.mode-3d .hint { display: none; }
+}
+body:not(.mode-3d) .ui3d { display: flex; position: fixed; right: 0; bottom: 0; z-index: 3; padding: 16px; justify-content: flex-end; pointer-events: none; }
+body:not(.mode-3d) .ui3d .hint3d, body:not(.mode-3d) #home3d { display: none; }

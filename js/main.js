@@ -2,15 +2,27 @@
 (function () {
   var root = document.documentElement;
 
-  // Open panels
-  document.querySelectorAll('.item[data-panel]').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      var dlg = document.getElementById('panel-' + btn.dataset.panel);
-      if (!dlg) return;
-      if (typeof dlg.showModal === 'function') dlg.showModal();
-      else dlg.setAttribute('open', '');
-      history.replaceState(null, '', '#' + btn.dataset.panel);
-    });
+  // Open panels (also used by the 3D room in js/room.js)
+  function openPanel(name) {
+    var dlg = document.getElementById('panel-' + name);
+    if (!dlg || dlg.open) return;
+    if (typeof dlg.showModal === 'function') dlg.showModal();
+    else dlg.setAttribute('open', '');
+    history.replaceState(null, '', '#' + name);
+  }
+  window.openPanel = openPanel;
+  document.querySelectorAll('[data-panel]').forEach(function (btn) {
+    btn.addEventListener('click', function () { openPanel(btn.dataset.panel); });
+  });
+
+  // 2D shelf <-> 3D room
+  var toggle = document.getElementById('viewToggle');
+  if (toggle) toggle.addEventListener('click', function () {
+    var to3d = !document.body.classList.contains('mode-3d');
+    document.body.classList.toggle('mode-3d', to3d);
+    toggle.textContent = to3d ? '2D shelf' : '3D room';
+    try { localStorage.setItem('vaw-view', to3d ? '3d' : '2d'); } catch (e) {}
+    window.dispatchEvent(new Event('resize'));
   });
 
   // Close panels (close button, backdrop click, Esc)
