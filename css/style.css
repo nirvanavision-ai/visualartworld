@@ -424,7 +424,7 @@ body {
 #room3d, #labels3d, .ui3d { display: none; }
 .view3d { display: none; margin-left: auto; }
 body:not(.mode-3d):not(.no-3d) .view3d { display: inline-block; }
-body.mode-3d { overflow: hidden; background: #e4ddd2; --d-ink: #2a2724; --d-soft: #6b6157; --d-gold: #9a7b48; --d-card: rgba(247, 244, 238, .97); --display: "Playfair Display", var(--serif); --ui: "Karla", var(--sans); }
+body.mode-3d { overflow: hidden; background: #9a8d7c; --d-ink: #2a2724; --d-soft: #4a4239; --d-gold: #9a7b48; --d-card: rgba(247, 244, 238, .97); --display: "Playfair Display", var(--serif); --ui: "Karla", var(--sans); }
 body.mode-3d .room { display: none; }
 body.mode-3d #room3d { display: block; position: fixed; inset: 0; z-index: 1; touch-action: manipulation; }
 body.mode-3d #room3d canvas { display: block; width: 100%; height: 100%; }
@@ -442,7 +442,7 @@ body.mode-3d .ui3d::before { content: ""; position: absolute; inset: 0; backgrou
 .chip3d.show { opacity: 1; }
 
 .intro3d { position: absolute; left: clamp(20px, 4vw, 58px); bottom: clamp(28px, 6vh, 56px); max-width: 340px; }
-.title3d { font-family: var(--display); font-weight: 400; font-size: clamp(38px, 4.4vw, 64px); line-height: 1.02; letter-spacing: -.01em; margin: 0 0 22px; color: var(--d-ink); text-shadow: 0 1px 18px rgba(255,250,242,.6); }
+.title3d { font-family: var(--display); font-weight: 400; font-size: clamp(38px, 4.4vw, 64px); line-height: 1.02; letter-spacing: -.01em; margin: 0 0 22px; color: var(--d-ink); text-shadow: 0 1px 24px rgba(255,250,242,.35); }
 .lede3d { font-size: 16px; line-height: 1.55; margin: 0 0 26px; color: var(--d-soft); }
 .found3d { font-size: 12px; letter-spacing: .22em; text-transform: uppercase; margin: 0; color: var(--d-soft); }
 
@@ -489,7 +489,7 @@ body.mode-3d .panel .close { background: transparent; color: var(--d-ink); borde
 body.mode-3d .panel .kicker { font: 600 12px var(--ui); letter-spacing: .24em; text-transform: uppercase; color: var(--d-soft); margin-bottom: 10px; }
 body.mode-3d .panel h2 { font-family: var(--display); font-weight: 400; color: var(--d-ink); }
 body.mode-3d .panel h3, body.mode-3d .prose h3 { font-family: var(--display); font-weight: 400; color: var(--d-gold); }
-body.mode-3d .panel .lead, body.mode-3d .panel .prose, body.mode-3d .panel p, body.mode-3d .panel li { color: var(--d-soft); font-family: var(--ui); }
+body.mode-3d .panel .lead, body.mode-3d .panel .prose, body.mode-3d .panel p, body.mode-3d .panel li { color: #5e554b; font-family: var(--ui); }
 body.mode-3d .panel strong { color: var(--d-ink); }
 body.mode-3d .panel .card, body.mode-3d .panel .places li { background: #fff; border: 1px solid rgba(42,39,36,.08); box-shadow: none; }
 body.mode-3d .panel .card p, body.mode-3d .gallery figcaption, body.mode-3d .tracklist em, body.mode-3d .places span, body.mode-3d .tools { color: var(--d-soft); }

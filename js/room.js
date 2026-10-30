@@ -23,7 +23,7 @@ renderer.shadowMap.type = THREE.VSMShadowMap;
 stage.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xe4ddd2);
+scene.background = new THREE.Color(0x9a8d7c);
 // soft studio reflections: a small room of light panels baked into an env map
 (function environment() {
   const env = new THREE.Scene();
@@ -41,7 +41,7 @@ const camera = new THREE.PerspectiveCamera(30, stage.clientWidth / stage.clientH
 
 // ---------- palette & helpers ----------
 const C = {
-  wall: 0xe6dfd3, floor: 0xc4a684, skirting: 0xe9e3d8, oak: 0xc9a982, oakDark: 0xb28f68,
+  wall: 0xe6dfd3, floor: 0xc4a684, skirting: 0xf3f0ea, oak: 0xc9a982, oakDark: 0xb28f68,
   ink: 0x2a2724, paper: 0xf5f1ea, linen: 0xd9cfbf, stone: 0xd8cbb6, travertine: 0xe2d6c2,
   black: 0x1d1c1b, brass: 0xb89a62, white: 0xf3f1ec, pom: 0xe4954a, pomLight: 0xf6c58c,
 };
@@ -109,21 +109,35 @@ let seed = 7;
 const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
 
 // ---------- room shell ----------
+// midtone designer wallpaper: taupe grasscloth with a tone-on-tone arch lattice
 const wallTex = canvasTexture(512, 512, (g, w, h) => {
-  g.fillStyle = '#e6dfd3'; g.fillRect(0, 0, w, h);
-  for (let i = 0; i < 220; i++) { // soft limewash clouds
-    const x = rand() * w, y = rand() * h, r = 20 + rand() * 70;
-    const grad = g.createRadialGradient(x, y, 0, x, y, r);
-    const tone = rand() > 0.5 ? '255,252,246' : '196,184,166';
-    grad.addColorStop(0, `rgba(${tone},${0.05 + rand() * 0.07})`); grad.addColorStop(1, `rgba(${tone},0)`);
-    g.fillStyle = grad; g.fillRect(x - r, y - r, r * 2, r * 2);
+  g.fillStyle = '#9a8d7c'; g.fillRect(0, 0, w, h);
+  for (let y = 0; y < h; y += 1.5) { // woven grasscloth fibres
+    const v = rand();
+    g.fillStyle = v > 0.5 ? `rgba(255,248,236,${0.03 + rand() * 0.05})` : `rgba(60,48,36,${0.03 + rand() * 0.06})`;
+    g.fillRect(0, y, w, 1 + rand());
+  }
+  for (let x = 0; x < w; x += 64) { g.fillStyle = 'rgba(60,48,36,.05)'; g.fillRect(x, 0, 1, h); }
+  const arch = (cx, cy, r) => {
+    g.beginPath(); g.moveTo(cx - r, cy + r * 1.6); g.lineTo(cx - r, cy); g.arc(cx, cy, r, Math.PI, 0); g.lineTo(cx + r, cy + r * 1.6); g.stroke();
+  };
+  g.lineWidth = 2;
+  g.strokeStyle = 'rgba(214,198,170,.28)';
+  for (let row = 0; row < 3; row++) for (let col = 0; col < 3; col++) {
+    const cx = col * 256 + (row % 2 ? 128 : 0), cy = row * 256 - 60;
+    arch(cx, cy, 92); arch(cx, cy, 70);
+  }
+  g.fillStyle = 'rgba(214,198,170,.3)';
+  for (let row = 0; row < 3; row++) for (let col = 0; col < 3; col++) {
+    const cx = col * 256 + (row % 2 ? 0 : 128), cy = row * 256 + 70;
+    g.beginPath(); g.arc(cx, cy, 6, 0, 7); g.fill();
   }
 });
 wallTex.wrapS = wallTex.wrapT = THREE.RepeatWrapping;
-wallTex.repeat.set(5, 3);
-const wallBump = grainTexture(256, false);
-wallBump.repeat.set(30, 18);
-const wallMat = new THREE.MeshStandardMaterial({ map: wallTex, roughness: 0.92, bumpMap: wallBump, bumpScale: 0.6 });
+wallTex.repeat.set(26, 15);
+const wallBump = grainTexture(256, true);
+wallBump.repeat.set(26, 15);
+const wallMat = new THREE.MeshStandardMaterial({ map: wallTex, roughness: 0.82, bumpMap: wallBump, bumpScale: 0.8 });
 const wallMesh = mesh(new THREE.PlaneGeometry(70, 40), wallMat, 0, 15, 0);
 wallMesh.castShadow = false;
 scene.add(wallMesh);
@@ -180,6 +194,8 @@ const oakTex = canvasTexture(512, 512, (g, w, h) => {
 oakTex.wrapS = oakTex.wrapT = THREE.RepeatWrapping;
 const oak = new THREE.MeshStandardMaterial({ map: oakTex, roughness: 0.62 });
 const oakShade = new THREE.MeshStandardMaterial({ map: oakTex, color: 0xd9cbb8, roughness: 0.7 });
+const lacquer = new THREE.MeshPhysicalMaterial({ color: 0xf6f4ef, roughness: 0.18, clearcoat: 1, clearcoatRoughness: 0.08 });
+const lacquerShade = new THREE.MeshPhysicalMaterial({ color: 0xebe7df, roughness: 0.25, clearcoat: 0.8, clearcoatRoughness: 0.12 });
 
 // ---------- clickable registry ----------
 // key -> { group, panel?, action?, label }
@@ -278,21 +294,38 @@ function trailingPlant() {
 }
 (function floatingShelf() {
   const g = new THREE.Group();
-  g.add(rbox(6.6, 0.22, 0.8, 0.03, oak, 0, 0, 0.4));
+  g.add(rbox(6.6, 0.22, 0.8, 0.03, lacquer, 0, 0, 0.4));
   const plant = trailingPlant();
   plant.position.set(-2.35, 0.12, 0.4);
   g.add(plant);
   pieces.plant = plant;
   register(plant, 'plant', 'Water the plant', { action: 'wiggle', lift: 0 });
-  const photos = new THREE.Group();
-  const f1 = pictureFrame(0.92, 1.12, photoTexture(0), C.black);
+  // two more of ANGIE's film posters, gallery framed
+  const posterTex = (url) => imageTexture(url, 150, 210, (c, w, h) => { c.fillStyle = '#2a2724'; c.fillRect(0, 0, w, h); });
+  const films = new THREE.Group();
+  const f1 = pictureFrame(0.92, 1.24, posterTex('images/poster-hydra.jpg'), C.black);
   f1.position.set(0, 0.12, 0.35); f1.rotation.x = -0.08;
-  const f2 = pictureFrame(0.78, 0.92, photoTexture(1), C.oak);
-  f2.position.set(1.15, 0.12, 0.45); f2.rotation.set(-0.08, -0.12, 0);
-  photos.add(f1, f2);
-  photos.position.set(0.55, 0, 0);
-  g.add(photos);
-  register(photos, 'photo', 'Photography', { panel: 'photo' });
+  const f2 = pictureFrame(0.86, 1.14, posterTex('images/poster-tomiris.jpg'), 0xf6f4ef);
+  f2.position.set(1.05, 0.12, 0.45); f2.rotation.set(-0.08, -0.12, 0);
+  films.add(f1, f2);
+  films.position.set(0.15, 0, 0);
+  g.add(films);
+  register(films, 'films', 'More of my films', { panel: 'film' });
+  // a vintage rangefinder camera for Photography
+  const cam = new THREE.Group();
+  cam.add(rbox(0.62, 0.36, 0.22, 0.04, C.black, 0, 0.18, 0, { roughness: 0.55 }));
+  cam.add(rbox(0.6, 0.1, 0.2, 0.02, mat(0xc9ccd0, { metalness: 0.9, roughness: 0.3 }), 0, 0.4, 0));
+  const lens = cyl(0.12, 0.13, 0.16, mat(0xc9ccd0, { metalness: 0.9, roughness: 0.25 }), 0.04, 0.18, 0.16, 40);
+  lens.rotation.x = Math.PI / 2;
+  cam.add(lens);
+  const glassL = cyl(0.085, 0.085, 0.02, mat(0x223344, { metalness: 0.3, roughness: 0.05 }), 0.04, 0.18, 0.245, 32);
+  glassL.rotation.x = Math.PI / 2;
+  cam.add(glassL);
+  cam.add(box(0.1, 0.06, 0.02, 0x8fa0b0, -0.2, 0.36, 0.11, { metalness: 0.3, roughness: 0.1 }));
+  cam.add(cyl(0.035, 0.035, 0.05, mat(0xc9ccd0, { metalness: 0.9, roughness: 0.3 }), 0.2, 0.47, 0, 20));
+  cam.position.set(2.75, 0.12, 0.4); cam.rotation.y = -0.35;
+  g.add(cam);
+  register(cam, 'photo', 'Photography', { panel: 'photo' });
   pieces.shelf = g;
   scene.add(g);
 })();
@@ -374,8 +407,8 @@ const CASE_D = 1.05, T = 0.07, PLINTH = 0.12;
 const bookcase = new THREE.Group();
 const slots = []; // slots[col][row] = { x, y, w, h } in bookcase space, y = top of the shelf board
 (function buildCase() {
-  const yellow = oak;
-  const inner = oakShade;
+  const yellow = lacquer;
+  const inner = lacquerShade;
   let x = -CASE_W / 2;
   COLS.forEach((c, ci) => {
     const cx = x + c.w / 2;
@@ -511,7 +544,7 @@ vessel(slots[1][0], 0, 0.62, 0.18, C.black);
   const g = new THREE.Group();
   const body = mat(C.white, { roughness: 0.45 });
   g.add(rbox(0.7, 1.15, 0.6, 0.04, body, 0, 0.575, 0));
-  g.add(rbox(0.74, 0.16, 0.64, 0.03, oak, 0, 1.2, 0));
+  g.add(rbox(0.74, 0.16, 0.64, 0.03, oakShade, 0, 1.2, 0));
   const screenTex = canvasTexture(128, 112, (c, w, h) => {
     c.fillStyle = '#0d1630'; c.fillRect(0, 0, w, h);
     const px = (x, y, col) => { c.fillStyle = col; c.fillRect(x * 8, y * 8, 8, 8); };
@@ -621,9 +654,9 @@ vessel(slots[3][0], 0.3, 0.72, 0.2, C.stone);
   const satin = mat(0x2b2b2e, { roughness: 0.45, metalness: 0.2 });
   const alu = mat(0xc9ccd0, { metalness: 0.9, roughness: 0.28 });
   const stone = mat(C.travertine, { roughness: 0.8 });
-  // console: oak slab on two travertine plinths
-  g.add(rbox(2.9, 0.12, 1.0, 0.03, oak, 0, 1.02, 0));
-  [-1.05, 1.05].forEach(x => g.add(rbox(0.5, 0.96, 0.8, 0.04, stone, x, 0.48, 0)));
+  // console: white lacquer slab on two lacquer plinths, travertine footing
+  g.add(rbox(2.9, 0.12, 1.0, 0.04, lacquer, 0, 1.02, 0));
+  [-1.05, 1.05].forEach(x => { g.add(rbox(0.5, 0.92, 0.8, 0.05, lacquer, x, 0.5, 0)); g.add(rbox(0.54, 0.05, 0.84, 0.02, stone, x, 0.025, 0)); });
   // controller body, tilted toward the room
   const ctrl = new THREE.Group();
   ctrl.add(rbox(1.9, 0.09, 0.72, 0.04, white, 0, 0.045, 0));
@@ -669,13 +702,13 @@ vessel(slots[3][0], 0.3, 0.72, 0.2, C.stone);
   [-0.17, 0.17].forEach(x => { const cup = rbox(0.1, 0.15, 0.07, 0.03, white, x, -0.02, 0); hp.add(cup); });
   hp.position.set(1.18, 1.14, 0.2); hp.rotation.set(-1.4, 0, 0.35);
   g.add(hp);
-  // two white studio speakers on slim oak stands
+  // two white studio speakers on slim lacquer stands
   const cones = [];
   [-1.95, 1.95].forEach(x => {
     const sp = new THREE.Group();
-    sp.add(rbox(0.4, 0.04, 0.4, 0.015, oak, 0, 0.02, 0));
-    sp.add(cyl(0.035, 0.035, 1.25, oak, 0, 0.66, 0, 16));
-    sp.add(rbox(0.36, 0.04, 0.36, 0.015, oak, 0, 1.3, 0));
+    sp.add(rbox(0.4, 0.04, 0.4, 0.015, lacquer, 0, 0.02, 0));
+    sp.add(cyl(0.035, 0.035, 1.25, lacquer, 0, 0.66, 0, 16));
+    sp.add(rbox(0.36, 0.04, 0.36, 0.015, lacquer, 0, 1.3, 0));
     const cabinet = rbox(0.66, 1.0, 0.6, 0.07, white, 0, 1.82, 0);
     sp.add(cabinet);
     const woofer = new THREE.Group();
@@ -696,9 +729,9 @@ vessel(slots[3][0], 0.3, 0.72, 0.2, C.stone);
     sp.rotation.y = x < 0 ? 0.2 : -0.2;
     g.add(sp);
   });
-  // oak crate of records
+  // lacquer crate of records
   const crate = new THREE.Group();
-  crate.add(rbox(0.62, 0.42, 0.5, 0.02, oak, 0, 0.21, 0));
+  crate.add(rbox(0.62, 0.42, 0.5, 0.02, lacquer, 0, 0.21, 0));
   [0x2a2724, 0xe9e2d4, 0xb5673f, 0x8f9a86, 0xd8cbb6, 0x1d1c1b].forEach((c, i) => {
     const r = box(0.5, 0.5, 0.02, c, 0, 0.33, -0.18 + i * 0.07);
     r.rotation.x = -0.18;
@@ -844,7 +877,7 @@ function applyTheme() {
   fill.intensity = night ? 0.08 : 0.5;
   moonLight.intensity = night ? 6 : 0;
   pieces.moon.material.emissiveIntensity = night ? 1.1 : 0.05;
-  scene.background.set(night ? 0x2a2620 : 0xe4ddd2);
+  scene.background.set(night ? 0x2a2620 : 0x9a8d7c);
   scene.environmentIntensity = night ? 0.15 : 0.55;
 }
 new MutationObserver(applyTheme).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
