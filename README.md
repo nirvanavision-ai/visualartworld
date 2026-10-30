@@ -12,18 +12,19 @@ images/         your photos go here
 
 ## What to fill in
 
-Most text now comes from the Nirvana Vision Webflow site. Anything still in `[square brackets]`
+Most text now comes from Angelica's resume and the Nirvana Vision Webflow site. Anything still in `[square brackets]`
 in `index.html` is a placeholder.
 
 | Shelf object | Panel | Still needed | Photos to add (in `images/`) |
 |---|---|---|---|
-| Books | About me | your city | `portrait.jpg` (3:4) |
+| Books | About me | (done) | `portrait.jpg` (3:4) |
 | Picture frame | Painting | heading, one line, 3 captions | `painting-1.jpg` … `painting-3.jpg` (4:5) |
 | Camera | Photography | (done) | `photo-1.jpg` … `photo-4.jpg` (3:2) |
 | Clapperboard | Filmmaking | (done) | `cahuenga-poster.jpg`* |
 | Record player | Music & DJ | your sound, song titles, DJ sets, SoundCloud/Spotify link | none |
 | Zoetrope | Animation | a few lines about your own work, 3 captions | `animation-1.jpg` … `animation-3.jpg` |
 | Laptop | Web & games | game title, description, link | `site-nicolette.gif`*, `site-regaljade.jpg`*, `site-hfa.jpg`, `game-1.jpg` |
+| Padlock | Ethical hacking & OSINT | what you focus on, 2 focus areas | none |
 | Light bulb | Inventions | heading, one line, 3 inventions | `invention-1.jpg` … `invention-3.jpg` |
 | Trophy | Awards & impact | (done) | none |
 | Envelope | Say hello | Instagram (or remove that line) | none |
@@ -35,7 +36,7 @@ with that name before you shut the Webflow site down.
 Until a photo is added, its spot shows a beige box naming the exact file it expects.
 Keep photos under ~500 KB each (export at 1600px on the long side).
 
-The plant and the brush jar just wiggle, and the hanging lamp switches the room to night mode.
+The plant just wiggles, and the hanging lamp switches the room to night mode.
 To change what an object opens, edit its `data-panel` in `index.html` and the matching
 `<dialog id="panel-...">` below it.
 

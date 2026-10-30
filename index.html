@@ -23,7 +23,7 @@
     <header class="top">
       <a class="brand" href="#" aria-label="Home">
         <span class="brand-name">Angelica</span>
-        <span class="brand-role">Filmmaker · Photographer · Music producer</span>
+        <span class="brand-role">Cinematographer · Director · Editor</span>
       </a>
       <p class="hint"><span class="hint-arrow" aria-hidden="true">↓</span> click the things on my shelf</p>
     </header>
@@ -230,19 +230,15 @@
             </svg>
           </button>
 
-          <button class="item item-jar" data-action="wiggle" style="--w:100px" aria-label="A jar of brushes (click to rattle)">
-            <span class="label">brushes 🖌️</span>
-            <svg viewBox="0 0 120 170" aria-hidden="true">
-              <g class="leaves">
-                <rect x="62" y="4" width="7" height="100" rx="3" fill="var(--wood-dark)" transform="rotate(14 65 104)"/>
-                <path d="M70 0 l8 14 l-10 2 z" fill="var(--c-red)" transform="rotate(14 65 104)"/>
-                <rect x="44" y="10" width="7" height="100" rx="3" fill="var(--c-mustard)" transform="rotate(-10 47 110)"/>
-                <path d="M45 4 l6 0 l2 10 l-10 0 z" fill="var(--c-navy)" transform="rotate(-10 47 110)"/>
-                <rect x="56" y="24" width="6" height="90" rx="3" fill="var(--c-navy)"/>
-              </g>
-              <rect x="20" y="80" width="80" height="90" rx="8" fill="var(--glass)"/>
-              <rect x="20" y="80" width="80" height="12" rx="4" fill="var(--paper)" opacity=".5"/>
-              <path d="M20 130 Q40 122 60 132 T100 128 L100 162 Q100 170 92 170 H28 Q20 170 20 162Z" fill="var(--c-sage)" opacity=".55"/>
+          <button class="item" data-panel="security" style="--w:110px">
+            <span class="label">Ethical hacking</span>
+            <svg viewBox="0 0 120 150" aria-hidden="true">
+              <path d="M32 66 V44 C32 22 88 22 88 44 V66" stroke="#9aa3ad" stroke-width="12" fill="none" stroke-linecap="round" class="shackle"/>
+              <rect x="14" y="62" width="92" height="84" rx="12" fill="var(--c-navy)"/>
+              <rect x="14" y="62" width="92" height="14" rx="6" fill="#3d5b82"/>
+              <circle cx="60" cy="98" r="10" fill="var(--c-mustard)"/>
+              <path d="M56 104 H64 L62 124 H58 Z" fill="var(--c-mustard)"/>
+              <text x="60" y="140" text-anchor="middle" class="svg-hand svg-hand-light">0101</text>
             </svg>
           </button>
 
@@ -286,15 +282,14 @@
           <figcaption class="note">that's me!</figcaption>
         </figure>
         <div class="prose">
-          <p class="lead">I'm a Ukrainian-born award-winning filmmaker, award-winning photographer, music producer, songwriter, and interactive web and game designer and developer. I like to call myself a visual alchemist: I mix ancient wisdom with new tools.</p>
-          <p>I grew up in the late Soviet Union and studied cultural anthropology, film and art at UCLA. In Paris I studied psychomagic and filmmaking with Alejandro Jodorowsky, which taught me to treat cinema as something closer to alchemy than entertainment.</p>
-          <p>For more than ten years I was the photographer and videographer of the Rinzai-ji Zen Center under Joshu Sasaki Roshi. As a cultural anthropologist and documentary filmmaker, I spent 15 years travelling and living with Native American tribes, recording traditional knowledge, oral histories and sacred songs at the invitation of elders.</p>
-          <p>Today I run <strong>Nirvana Vision</strong>, a woman-owned creative studio blending ancestral storytelling, AI-assisted filmmaking and spatial design. When I'm not on a project, you'll find me painting, DJing, making music, animating, coding or inventing things.</p>
+          <p class="lead">I'm a Ukrainian-born cinematographer, director and editor: an award-winning filmmaker and photographer, music producer, songwriter, interactive web and game designer and developer, and ethical hacker.</p>
+          <p>I studied Film, Art and Anthropology at UCLA, with an exchange year of international cinema at Université Paris-Panthéon-Assas. Along the way I was lucky to learn from remarkable mentors: visionary cinema and psychomagic with Alejandro Jodorowsky, filmmaking with Christopher Coppola, cultural anthropology field work with Jared Diamond, creative writing with Ray Bradbury, and documentary and archive work with Leonard Cohen.</p>
+          <p>As a cultural anthropologist and documentary filmmaker, I spent 15 years travelling and living with Native American tribes, recording traditional knowledge, oral histories and sacred songs at the invitation of elders. I also spent more than a decade documenting the Rinzai-ji Zen Center.</p>
+          <p>Today I run <strong>Nirvana Vision</strong>, a woman-owned creative studio blending ancestral storytelling, AI-assisted filmmaking and spatial design. Off the clock you'll find me painting, DJing, making music, animating, coding, digging into OSINT puzzles or inventing things.</p>
           <ul class="facts">
-            <li><strong>From</strong> Ukraine · based in [City]</li>
-            <li><strong>Studied</strong> UCLA · Alejandro Jodorowsky (Paris)</li>
-            <li><strong>Field work</strong> 15 years living with Native American tribes</li>
-            <li><strong>Studio</strong> Nirvana Vision</li>
+            <li><strong>Based in</strong> Los Angeles · born in Ukraine</li>
+            <li><strong>Education</strong> BA Film / Art &amp; Anthropology, UCLA · AA Film &amp; Video, LACC · AA Photography, Santa Monica College</li>
+            <li><strong>Studio</strong> Nirvana Vision · Visual Art Solutions</li>
           </ul>
         </div>
       </div>
@@ -319,13 +314,35 @@
     <button class="close" type="button" aria-label="Close">×</button>
     <div class="panel-body">
       <p class="kicker">Photography</p>
-      <h2 id="t-photo">Award-winning photography, ten years of it at a Zen monastery.</h2>
-      <p class="lead">From ceremonies at Rinzai-ji to elders sharing oral traditions, my photography is about witnessing moments that might otherwise be lost.</p>
+      <h2 id="t-photo">Award-winning photography, from galleries to ceremonies.</h2>
+      <p class="lead">From a solo show at the Pacific Design Center to ten years photographing ceremonies at Rinzai-ji, my photography is about witnessing moments that might otherwise be lost.</p>
       <div class="gallery gallery-tight">
         <figure><img src="images/photo-1.jpg" alt="[Photo 1 description]" loading="lazy"></figure>
         <figure><img src="images/photo-2.jpg" alt="[Photo 2 description]" loading="lazy"></figure>
         <figure><img src="images/photo-3.jpg" alt="[Photo 3 description]" loading="lazy"></figure>
         <figure><img src="images/photo-4.jpg" alt="[Photo 4 description]" loading="lazy"></figure>
+      </div>
+      <div class="two-col">
+        <div>
+          <h3>Awards &amp; press</h3>
+          <ul class="tracklist tracklist-plain">
+            <li><span>2015</span> <em>Winner, Magnum Photography Awards</em></li>
+            <li><span>2012</span> <em>Published in Cultured Magazine</em></li>
+            <li><span>2009</span> <em>Featured in Coil Magazine</em></li>
+            <li><span>2008</span> <em>Featured in Porter Gulch Review</em></li>
+            <li><span>2006</span> <em>Best Collage Photography</em></li>
+          </ul>
+        </div>
+        <div>
+          <h3>Exhibitions</h3>
+          <ul class="tracklist tracklist-plain">
+            <li><span>2017</span> <em>Photoplay, group show, The Hive Gallery</em></li>
+            <li><span>2011</span> <em>Artist in residence, The Hive Gallery &amp; Machine Project</em></li>
+            <li><span>2011</span> <em>Photo L.A., Los Angeles</em></li>
+            <li><span>2011</span> <em>Outsider Art, Hozhoni Art Gallery</em></li>
+            <li><span>2010</span> <em>Lithium, solo show, Pacific Design Center</em></li>
+          </ul>
+        </div>
       </div>
     </div>
   </dialog>
@@ -335,18 +352,21 @@
     <div class="panel-body">
       <p class="kicker">Filmmaking</p>
       <h2 id="t-film">Ancient wisdom. Neural cinema.</h2>
-      <p class="lead">Award-winning documentaries rooted in cultural anthropology and traditional knowledge, plus branded content, music videos and post-production, from Super 8 to AI-assisted pre-visualization.</p>
+      <p class="lead">Award-winning cinematographer, director and editor: documentaries rooted in cultural anthropology and traditional knowledge, plus broadcast, branded content and music videos.</p>
       <div class="split split-wide">
         <figure class="photo">
-          <img src="images/cahuenga-poster.jpg" data-fallback="https://cdn.prod.website-files.com/67ebd4d6f860ecf7ae4ba3f7/682d8cf9df70ec2a590a6235_Cahuenga%20Film%20Poster.jpg" alt="Poster for the film Cahuenga, A Place of the Hill" loading="lazy">
+          <img src="images/cahuenga-poster.jpg" data-fallback="https://cdn.prod.website-files.com/67ebd4d6f860ecf7ae4ba3f7/682d8cf9df70ec2a590a6235_Cahuenga%20Film%20Poster.jpg" alt="Poster for the film Cahuenga, Place of the Hill" loading="lazy">
         </figure>
         <ul class="places">
-          <li><strong>Cahuenga, A Place of the Hill</strong><span>A documentary made with the Tataviam Tribal Nation about their fight to survive. Best Film and Best Original Score, PAH Fest Los Angeles (2012).</span></li>
-          <li><strong>Dreams of the Hydra</strong><span>A Super 8 film that won Flicker LA's Super 8 festival and toured North America with the Echo Park Mobile Cinema Tour.</span></li>
-          <li><strong>The Bridge Project</strong><span>Documenting elders' oral traditions, rituals and sacred songs, recognized by 29 Native American tribes.</span></li>
-          <li><strong>Zen Legacy</strong><span>Over ten years as official photographer and videographer for Rinzai-ji Zen Center.</span></li>
+          <li><strong>Dreams of the Hydra</strong><span>Director, producer, cinematographer. A surrealist short: Best Film at FLICKR LA "Attack of the 50 Foot Reels" (2007) and Echo Park Film Center "Mobile Cinema" (2008). Screened at the Egyptian Theatre, American Cinematheque and Steve Allen Theatre.</span></li>
+          <li><strong>Cahuenga, Place of the Hill</strong><span>Director, producer, cinematographer. Made with the Tataviam Tribal Nation. Best Film and Best Score at Coppola's PAH Film Fest (2012).</span></li>
+          <li><strong>The Legend of Tomiris</strong><span>Editor and VFX artist. Best Feature Film and Best Action in a Foreign Film at the Taurus Awards, and Best Film at L'Étrange Festival (2020).</span></li>
+          <li><strong>The Bridge Project</strong><span>A 29-tribe oral-history documentary series. I directed, filmed and edited over 100 hours of interviews with elders.</span></li>
+          <li><strong>The World of Cinema</strong><span>Director of photography, camera operator and editor for this Turkish Public Television (TRT) series.</span></li>
+          <li><strong>Brands &amp; music videos</strong><span>Jade City: The Story of Jadeite (branded documentary), Saryna Key "The Crown" beauty campaign, and music videos for DJ Havana Brown.</span></li>
         </ul>
       </div>
+      <p class="tools"><strong>Tools</strong> Premiere Pro · After Effects · DaVinci Resolve · Lightroom · Photoshop · Illustrator</p>
     </div>
   </dialog>
 
@@ -373,13 +393,14 @@
     <div class="panel-body">
       <p class="kicker">Animation</p>
       <h2 id="t-animation">From thaumatropes to real-time 3D.</h2>
-      <p class="lead">I love the whole lineage of moving pictures, from spinning optical toys to Unreal Engine and Blender worlds.</p>
-      <p>[A few lines about your own animation work: what you make, tools you use, and a project you're proud of.]</p>
+      <p class="lead">I love the whole lineage of moving pictures, from spinning optical toys to Unreal Engine worlds, and I make VFX, motion graphics and 3D characters for films, campaigns and the web.</p>
+      <p>[A few lines about your own animation work and a project you're proud of.]</p>
       <div class="gallery">
         <figure><img src="images/animation-1.jpg" alt="[Animation still 1]" loading="lazy"><figcaption>[Project, year]</figcaption></figure>
         <figure><img src="images/animation-2.jpg" alt="[Animation still 2]" loading="lazy"><figcaption>[Project, year]</figcaption></figure>
         <figure><img src="images/animation-3.jpg" alt="[Animation still 3]" loading="lazy"><figcaption>[Project, year]</figcaption></figure>
       </div>
+      <p class="tools"><strong>Tools</strong> After Effects · Cinema 4D · Element 3D · Blender · Unreal Engine · Character Creator · Substance · Adobe Dimension</p>
     </div>
   </dialog>
 
@@ -388,7 +409,7 @@
     <div class="panel-body">
       <p class="kicker">Web &amp; games</p>
       <h2 id="t-coding">Interactive worlds you can click, play and explore.</h2>
-      <p class="lead">I design and develop interactive websites and games: Webflow builds, UI/UX, interactive portfolios, and real-time 3D in Unreal Engine and Blender.</p>
+      <p class="lead">I design and develop interactive websites and games: Webflow, WordPress and Elementor builds, UI/UX, interactive portfolios, and real-time 3D in Unreal Engine and Blender.</p>
       <div class="cards">
         <article class="card">
           <img src="images/site-nicolette.gif" data-fallback="https://cdn.prod.website-files.com/67ebd4d6f860ecf7ae4ba3f7/68664552bd0be6936a771ea0_NicoletteSideWh%20%281%29.gif" alt="Nicolette Spear website preview" loading="lazy">
@@ -403,7 +424,7 @@
         <article class="card">
           <img src="images/site-hfa.jpg" alt="Hollywood Film Academy website preview" loading="lazy">
           <h3>Hollywood Film Academy</h3>
-          <p>A large course site with schedules, curriculum, video and animation content.</p>
+          <p>An online learning platform and lecture series that I built, filmed and produced.</p>
         </article>
         <article class="card">
           <img src="images/game-1.jpg" alt="[Game title] screenshot" loading="lazy">
@@ -440,6 +461,20 @@
     </div>
   </dialog>
 
+  <dialog class="panel" id="panel-security" aria-labelledby="t-security">
+    <button class="close" type="button" aria-label="Close">×</button>
+    <div class="panel-body">
+      <p class="kicker">Ethical hacking &amp; OSINT</p>
+      <h2 id="t-security">Finding what's hidden, the right way.</h2>
+      <p class="lead">I'm an ethical hacker and open-source intelligence (OSINT) researcher. The same curiosity that drives my documentaries drives this: following the clues, verifying sources, and piecing together the real story.</p>
+      <p>[A few lines about what you focus on: e.g. security testing, digital footprint audits, investigations, CTFs, certifications.]</p>
+      <ul class="places">
+        <li><strong>[Focus area 1]</strong><span>[One line]</span></li>
+        <li><strong>[Focus area 2]</strong><span>[One line]</span></li>
+      </ul>
+    </div>
+  </dialog>
+
   <dialog class="panel" id="panel-impact" aria-labelledby="t-impact">
     <button class="close" type="button" aria-label="Close">×</button>
     <div class="panel-body">
@@ -447,12 +482,12 @@
       <h2 id="t-impact">Stories that give something back.</h2>
       <p class="lead">Fifteen years of living and working alongside Native American communities shaped everything I make.</p>
       <ul class="places">
-        <li><strong>PAH Fest Los Angeles</strong><span>Best Film and Best Original Score for Cahuenga, A Place of the Hill (2012).</span></li>
-        <li><strong>Flicker LA Super 8</strong><span>Winner for Dreams of the Hydra, plus selections at Attack of the Fifty Foot Reels and The Secret World of Human Science II.</span></li>
-        <li><strong>Tribal recognition</strong><span>The Bridge Project is recognized by 29 Native American tribes.</span></li>
-        <li><strong>Girls' education in Kenya</strong><span>Fundraising with nonprofit partners that helped build 24+ schools.</span></li>
+        <li><strong>9 film awards</strong><span>Across Dreams of the Hydra, Cahuenga, Place of the Hill and The Legend of Tomiris, including Best Film at Coppola's PAH Film Fest and L'Étrange Festival.</span></li>
+        <li><strong>Magnum Photography Awards</strong><span>Winner, 2015.</span></li>
+        <li><strong>The Bridge Project</strong><span>Oral histories from elders of 29 Native American tribes, preserved for cultural archives.</span></li>
+        <li><strong>Native Movement residency</strong><span>Living with and documenting Native American tribes: cultural preservation films, educational videos for schools, and the Hopi–Navajo Wedding Exhibit.</span></li>
+        <li><strong>Baby Girl Project / Save the Children</strong><span>Filming fundraising events and films that helped build 52 schools in Africa.</span></li>
         <li><strong>Environmental advocacy</strong><span>Documenting the impact of a coal-burning power plant on Navajo and Hopi lands with youth-led Indigenous movements.</span></li>
-        <li><strong>Archiving knowledge</strong><span>Preserving endangered cultural knowledge across the Southwest.</span></li>
       </ul>
     </div>
   </dialog>
