@@ -23,7 +23,7 @@ renderer.shadowMap.type = THREE.VSMShadowMap;
 stage.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x24171a);
+scene.background = new THREE.Color(0x1e2559);
 // soft studio reflections: a small room of light panels baked into an env map
 (function environment() {
   const env = new THREE.Scene();
@@ -41,7 +41,7 @@ const camera = new THREE.PerspectiveCamera(30, stage.clientWidth / stage.clientH
 
 // ---------- palette & helpers ----------
 const C = {
-  wall: 0xe6dfd3, floor: 0xc4a684, skirting: 0x1f1517, oak: 0xc9a982, oakDark: 0xb28f68,
+  wall: 0xe6dfd3, floor: 0xc4a684, skirting: 0x161b45, oak: 0xc9a982, oakDark: 0xb28f68,
   ink: 0x2a2724, paper: 0xf5f1ea, linen: 0xd9cfbf, stone: 0xd8cbb6, travertine: 0xe2d6c2,
   black: 0x1d1c1b, brass: 0xb89a62, white: 0xf3f1ec, pom: 0xe4954a, pomLight: 0xf6c58c,
 };
@@ -109,12 +109,12 @@ let seed = 7;
 const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
 
 // ---------- room shell ----------
-// dark designer wallpaper: original baroque damask in antique gold on a deep oxblood-black ground
+// designer wallpaper: original tone-on-tone baroque damask, deep cobalt on cobalt
 const wallTex = canvasTexture(512, 512, (g, w, h) => {
   const bg = g.createLinearGradient(0, 0, 0, h);
-  bg.addColorStop(0, '#2b1a1c'); bg.addColorStop(1, '#22151a');
+  bg.addColorStop(0, '#222a66'); bg.addColorStop(1, '#222a66');
   g.fillStyle = bg; g.fillRect(0, 0, w, h);
-  for (let y = 0; y < h; y += 2) { g.fillStyle = `rgba(${rand() > 0.5 ? '255,220,180' : '0,0,0'},${0.015 + rand() * 0.03})`; g.fillRect(0, y, w, 1); }
+  for (let k = 0; k < 9000; k++) { g.fillStyle = `rgba(${rand() > 0.5 ? '150,165,235' : '5,8,40'},${0.03 + rand() * 0.05})`; g.fillRect(rand() * w, rand() * h, 1, 1 + rand() * 3); }
   // one half of the ornament; drawn twice, mirrored, for a symmetric damask
   const half = () => {
     g.beginPath();
@@ -135,25 +135,31 @@ const wallTex = canvasTexture(512, 512, (g, w, h) => {
   };
   const ornament = (cx, cy, k) => {
     g.save(); g.translate(cx, cy); g.scale(k, k);
-    g.strokeStyle = 'rgba(196,158,92,.62)'; g.fillStyle = 'rgba(196,158,92,.5)'; g.lineWidth = 3.2 / k; g.lineCap = 'round';
-    half(); g.scale(-1, 1); half();
-    g.beginPath(); g.ellipse(0, 10, 12, 30, 0, 0, 7); g.fill();
-    g.beginPath(); g.arc(0, -150, 7, 0, 7); g.fill();
+    g.lineCap = 'round';
+    // embossed look: a faint light edge offset up-left, then the darker cobalt ornament
+    for (const [dx, dy, stroke, fill] of [[-1.6, -1.6, 'rgba(110,125,210,.32)', 'rgba(110,125,210,.24)'], [0, 0, 'rgba(10,14,56,.7)', 'rgba(10,14,56,.6)']]) {
+      g.save(); g.translate(dx / k, dy / k);
+      g.strokeStyle = stroke; g.fillStyle = fill; g.lineWidth = 3.6 / k;
+      half(); g.scale(-1, 1); half();
+      g.beginPath(); g.ellipse(0, 10, 12, 30, 0, 0, 7); g.fill();
+      g.beginPath(); g.arc(0, -150, 7, 0, 7); g.fill();
+      g.restore();
+    }
     g.restore();
   };
   ornament(128, 128, 0.62); ornament(384, 384, 0.62);
   ornament(384, -128, 0.62); ornament(128, 640, 0.62); ornament(-128, 384, 0.62); ornament(640, 128, 0.62);
   // small fleurons between the medallions
-  g.fillStyle = 'rgba(196,158,92,.45)';
+  g.fillStyle = 'rgba(14,20,72,.42)';
   for (const [x, y] of [[384, 128], [128, 384], [0, 0], [512, 0], [0, 512], [512, 512], [256, 256]]) {
     for (let k = 0; k < 4; k++) { g.beginPath(); g.ellipse(x + Math.cos(k * Math.PI / 2) * 9, y + Math.sin(k * Math.PI / 2) * 9, 4, 8, k * Math.PI / 2, 0, 7); g.fill(); }
   }
 });
 wallTex.wrapS = wallTex.wrapT = THREE.RepeatWrapping;
-wallTex.repeat.set(26, 15);
+wallTex.repeat.set(15, 8.6);
 const wallBump = grainTexture(256, true);
 wallBump.repeat.set(26, 15);
-const wallMat = new THREE.MeshStandardMaterial({ map: wallTex, roughness: 0.7, metalness: 0.08, bumpMap: wallBump, bumpScale: 0.6 });
+const wallMat = new THREE.MeshStandardMaterial({ map: wallTex, roughness: 0.62, metalness: 0.06, bumpMap: wallBump, bumpScale: 0.7 });
 const wallMesh = mesh(new THREE.PlaneGeometry(70, 40), wallMat, 0, 15, 0);
 wallMesh.castShadow = false;
 scene.add(wallMesh);
@@ -222,8 +228,10 @@ function register(group, key, label, opts = {}) {
   // own materials, so hover/hint glow only touches this object
   group.traverse(o => {
     if (o.isMesh) {
-      o.material = o.material.clone();
-      o.material.userData.baseEmissive = o.material.emissive ? o.material.emissive.clone() : null;
+      // face-out books and records use one material per side; keep only the cover for the glow
+      if (Array.isArray(o.material)) o.material = o.material.map(m => m.clone());
+      else o.material = o.material.clone();
+      for (const m of [].concat(o.material)) m.userData.baseEmissive = m.emissive ? m.emissive.clone() : null;
       o.userData.thing = key;
       pickables.push(o);
     }
@@ -316,17 +324,15 @@ function trailingPlant() {
   g.add(plant);
   pieces.plant = plant;
   register(plant, 'plant', 'Water the plant', { action: 'wiggle', lift: 0 });
-  // two more of ANGIE's film posters, gallery framed
+  // another of ANGIE's films, gallery framed
   const posterTex = (url) => imageTexture(url, 150, 210, (c, w, h) => { c.fillStyle = '#2a2724'; c.fillRect(0, 0, w, h); });
   const films = new THREE.Group();
-  const f1 = pictureFrame(0.92, 1.24, posterTex('images/poster-hydra.jpg'), C.black);
-  f1.position.set(0, 0.12, 0.35); f1.rotation.x = -0.08;
-  const f2 = pictureFrame(0.86, 1.14, posterTex('images/poster-tomiris.jpg'), 0xf6f4ef);
-  f2.position.set(1.05, 0.12, 0.45); f2.rotation.set(-0.08, -0.12, 0);
-  films.add(f1, f2);
-  films.position.set(0.15, 0, 0);
+  const f2 = pictureFrame(0.92, 1.24, posterTex('images/poster-tomiris.jpg'), C.black);
+  f2.position.set(0, 0.12, 0.4); f2.rotation.set(-0.08, -0.06, 0);
+  films.add(f2);
+  films.position.set(0.6, 0, 0);
   g.add(films);
-  register(films, 'films', 'More of my films', { panel: 'film' });
+  register(films, 'films', 'The Legend of Tomiris', { panel: 'film' });
   // a vintage rangefinder camera for Photography
   const cam = new THREE.Group();
   cam.add(rbox(0.62, 0.36, 0.22, 0.04, C.black, 0, 0.18, 0, { roughness: 0.55 }));
@@ -347,10 +353,9 @@ function trailingPlant() {
 })();
 
 // ---------- wall pieces: film poster, awards board, painting ----------
-(function poster() {
-  const tex = imageTexture('images/cahuenga-poster.jpg', 240, 320, (g, w, h) => {
-    g.fillStyle = '#a7774a'; g.fillRect(0, 0, w, h);
-    g.fillStyle = '#4b2e1a'; g.font = 'bold 34px Georgia'; g.textAlign = 'center'; g.fillText('CAHUENGA', w / 2, 60);
+function galleryPoster(url, key, label, fallback) {
+  const tex = imageTexture(url, 240, 320, (g, w, h) => {
+    g.fillStyle = fallback; g.fillRect(0, 0, w, h);
   });
   const g = new THREE.Group();
   g.add(box(1.5, 1.94, 0.06, C.black, 0, 0, 0.03, { roughness: 0.4 }));
@@ -359,10 +364,12 @@ function trailingPlant() {
   const glass = mesh(new THREE.PlaneGeometry(1.42, 1.86), new THREE.MeshPhysicalMaterial({ color: 0xffffff, transparent: true, opacity: 0.08, roughness: 0.05, metalness: 0 }), 0, 0, 0.08);
   glass.castShadow = false;
   g.add(glass);
-  register(g, 'film', 'Filmmaking', { panel: 'film' });
-  pieces.poster = g;
+  register(g, key, label, { panel: 'film' });
   scene.add(g);
-})();
+  return g;
+}
+pieces.poster = galleryPoster('images/cahuenga-poster.jpg', 'film', 'Filmmaking', '#a7774a');
+pieces.hydra = galleryPoster('images/poster-hydra.jpg', 'hydra', 'Dreams of the Hydra', '#111');
 (function awardsBoard() {
   const notes = [
     ['Winner', 'Best Film', 'PAH Film Festival'], ['Winner', 'Best Score', 'PAH Film Festival'],
@@ -503,7 +510,6 @@ function vessel(slot, dx, hRatio, r, color) {
   bookcase.add(v);
   return v;
 }
-vessel(slots[0][0], 0.45, 0.55, 0.2, C.paper);
 
 // column 1: moon lamp on top, About me books, then decor
 let s;
@@ -513,7 +519,29 @@ let s;
   register(g, 'about', 'About me', { panel: 'about' });
 })();
 books(slots[0][1], 0.04, 0.9, 1);
-books(slots[0][0], 0.04, 0.55, 3);
+books(slots[0][0], 0.04, 0.5, 3);
+(function cohenRecord() { // an LP leaning face-out, original sleeve art
+  s = slots[0][0];
+  const g = new THREE.Group();
+  const sleeve = canvasTexture(256, 256, (c, w, h) => {
+    c.fillStyle = '#1b1a19'; c.fillRect(0, 0, w, h);
+    const glow = c.createRadialGradient(150, 110, 10, 150, 110, 120);
+    glow.addColorStop(0, 'rgba(214,180,120,.55)'); glow.addColorStop(1, 'rgba(214,180,120,0)');
+    c.fillStyle = glow; c.fillRect(0, 0, w, h);
+    c.fillStyle = '#0c0b0a'; c.beginPath(); c.ellipse(140, 120, 36, 46, 0, 0, 7); c.fill();
+    c.beginPath(); c.moveTo(80, 256); c.quadraticCurveTo(140, 150, 200, 256); c.fill();
+    c.fillStyle = '#e9e0cf'; c.font = '600 20px Georgia'; c.fillText('LEONARD', 18, 36); c.fillText('COHEN', 18, 60);
+  });
+  const lp = mesh(new THREE.BoxGeometry(0.72, 0.72, 0.02), [mat(0x1b1a19), mat(0x1b1a19), mat(0x1b1a19), mat(0x1b1a19), new THREE.MeshStandardMaterial({ map: sleeve, roughness: 0.6 }), mat(0x1b1a19)], 0, 0.36, 0);
+  g.add(lp);
+  const disc = cyl(0.33, 0.33, 0.012, mat(0x0d0d0e, { roughness: 0.25 }), 0.22, 0.4, -0.02, 48);
+  disc.rotation.x = Math.PI / 2;
+  g.add(disc);
+  g.position.set(s.x + s.w * 0.25, s.y, CASE_D / 2 + 0.2);
+  g.rotation.set(-0.12, -0.1, 0);
+  bookcase.add(g);
+  register(g, 'cohen', 'Leonard Cohen, mentor', { panel: 'mentors' });
+})();
 (function moonLamp() {
   const t = slots[0].top;
   const g = new THREE.Group();
@@ -552,7 +580,27 @@ books(slots[0][0], 0.04, 0.55, 3);
   register(g, 'animation', 'Animation', { panel: 'animation' });
 })();
 books(slots[1][1], 0.1, 0.85, 2, { lean: true });
-vessel(slots[1][0], 0, 0.62, 0.18, C.black);
+(function laptop() { // ethical hacking & OSINT
+  s = slots[1][0];
+  const g = new THREE.Group();
+  const alu = mat(0x2a2a2d, { metalness: 0.6, roughness: 0.35 });
+  g.add(rbox(0.8, 0.035, 0.55, 0.02, alu, 0, 0.0175, 0));
+  const term = canvasTexture(256, 160, (c, w, h) => {
+    c.fillStyle = '#0b0f0c'; c.fillRect(0, 0, w, h);
+    c.fillStyle = '#7fe08a'; c.font = '11px monospace';
+    ['$ whois target.example', '$ nmap -sV 10.0.0.0/24', '  22/tcp open ssh', '  443/tcp open https', '$ exiftool photo.jpg', '  GPS: 34.05 N 118.24 W', '$ _'].forEach((l, i) => c.fillText(l, 10, 20 + i * 19));
+  });
+  const lid = new THREE.Group();
+  lid.add(rbox(0.8, 0.52, 0.03, 0.02, alu, 0, 0.26, 0));
+  lid.add(mesh(new THREE.PlaneGeometry(0.72, 0.44), new THREE.MeshStandardMaterial({ map: term, emissive: 0xffffff, emissiveMap: term, emissiveIntensity: 0.8 }), 0, 0.26, 0.017));
+  lid.position.set(0, 0.035, -0.26);
+  lid.rotation.x = -0.25;
+  g.add(lid);
+  g.position.set(s.x, s.y, CASE_D / 2 + 0.05);
+  g.rotation.y = 0.12;
+  bookcase.add(g);
+  register(g, 'security', 'Ethical hacking & OSINT', { panel: 'security' });
+})();
 
 // column 3: mini arcade (web & games), blueprint tube (inventions), globe (OSINT)
 (function arcade() {
@@ -604,33 +652,80 @@ vessel(slots[1][0], 0, 0.62, 0.18, C.black);
   bookcase.add(g);
   register(g, 'inventions', 'Inventions', { panel: 'inventions' });
 })();
-(function globe() {
+(function tequila() { // tall tapered anejo bottle with a round dark stopper
   s = slots[2][1];
   const g = new THREE.Group();
-  g.add(cyl(0.2, 0.26, 0.06, C.black, 0, 0.03, 0, 40, { roughness: 0.4 }));
-  g.add(cyl(0.022, 0.022, 0.25, C.brass, 0, 0.18, 0, 12, { metalness: 0.8, roughness: 0.3 }));
-  const earth = canvasTexture(512, 256, (c, w, h) => {
-    c.fillStyle = '#8b9ba3'; c.fillRect(0, 0, w, h);
-    c.fillStyle = '#e3d6c0';
-    const blob = (x, y, rx, ry) => { c.beginPath(); c.ellipse(x, y, rx, ry, rand(), 0, 7); c.fill(); };
-    blob(110, 80, 60, 40); blob(140, 170, 35, 55); blob(280, 75, 70, 35); blob(300, 150, 40, 50); blob(400, 90, 75, 40); blob(430, 190, 35, 22);
-    c.fillStyle = '#f3efe7'; c.fillRect(0, 0, w, 14); c.fillRect(0, h - 14, w, 14);
+  const pts = [];
+  const H = 1.32;
+  for (let i = 0; i <= 20; i++) {
+    const t = i / 20, y = t * H;
+    let r = 0.2 - t * 0.135; // long taper
+    if (t > 0.86) r = 0.055; // neck
+    pts.push(new THREE.Vector2(Math.max(r, 0.05), y));
+  }
+  pts.unshift(new THREE.Vector2(0, 0));
+  const glass = new THREE.MeshPhysicalMaterial({ color: 0x9a4a12, roughness: 0.06, metalness: 0, transmission: 0.35, thickness: 0.4, clearcoat: 1, clearcoatRoughness: 0.05, sheen: 0 });
+  const body = mesh(new THREE.LatheGeometry(pts, 8), glass, 0, 0, 0); // eight facets like a cut decanter
+  g.add(body);
+  g.add(cyl(0.07, 0.07, 0.06, C.black, 0, H + 0.03, 0, 24, { roughness: 0.4 }));
+  g.add(sphere(0.085, mat(0x4a2418, { roughness: 0.35 }), 0, H + 0.13, 0));
+  const label = canvasTexture(128, 256, (c, w, h) => {
+    c.clearRect(0, 0, w, h);
+    c.fillStyle = '#d8b46a'; c.textAlign = 'center';
+    c.font = '600 30px Georgia'; c.fillText('1942', w / 2, 200);
+    c.font = '500 14px Georgia'; c.fillText('TEQUILA AÑEJO', w / 2, 226);
   });
-  const ball = mesh(new THREE.SphereGeometry(0.4, 32, 20), new THREE.MeshPhysicalMaterial({ map: earth, roughness: 0.4, clearcoat: 0.6, clearcoatRoughness: 0.2 }), 0, 0.72, 0);
-  ball.rotation.z = 0.4;
-  g.add(ball);
-  const ring = mesh(new THREE.TorusGeometry(0.45, 0.018, 8, 40, Math.PI * 1.2), mat(C.brass, { metalness: 0.8, roughness: 0.3 }), 0, 0.72, 0);
-  ring.rotation.set(0, Math.PI / 2, 0.4 - 0.35);
-  g.add(ring);
-  g.position.set(s.x - 0.15, s.y, CASE_D / 2 + 0.05);
+  const lab = mesh(new THREE.PlaneGeometry(0.22, 0.44), new THREE.MeshStandardMaterial({ map: label, transparent: true, roughness: 0.3, metalness: 0.5 }), 0, 0.22, 0.19);
+  lab.rotation.x = -0.1;
+  lab.castShadow = false;
+  g.add(lab);
+  const band = mesh(new THREE.PlaneGeometry(0.06, 0.3), mat(0x2b1a12, { roughness: 0.4 }), 0, 1.0, 0.083);
+  band.rotation.x = -0.1;
+  g.add(band);
+  g.position.set(s.x - 0.42, s.y, CASE_D / 2 + 0.05);
   bookcase.add(g);
-  pieces.globe = ball;
-  register(g, 'security', 'Ethical hacking & OSINT', { panel: 'security' });
-  bookStack(s, s.x + 0.5, 3, 0);
+  register(g, 'tequila', 'Don Julio 1942', { action: 'cheers' });
+})();
+(function jodorowskyBook() { // standing face-out, original cover
+  s = slots[2][1];
+  const cover = canvasTexture(192, 288, (c, w, h) => {
+    c.fillStyle = '#efe4cf'; c.fillRect(0, 0, w, h);
+    c.strokeStyle = '#8a2a1e'; c.lineWidth = 3; c.strokeRect(12, 12, w - 24, h - 24);
+    c.fillStyle = '#1d1c1b'; c.beginPath(); c.arc(w / 2, 130, 44, 0, 7); c.fill();
+    c.fillStyle = '#d8b46a'; c.beginPath(); c.arc(w / 2, 130, 26, 0, 7); c.fill();
+    c.fillStyle = '#efe4cf'; c.beginPath(); c.arc(w / 2 + 9, 124, 22, 0, 7); c.fill();
+    c.fillStyle = '#1d1c1b'; c.textAlign = 'center';
+    c.font = '600 21px Georgia'; c.fillText('JODOROWSKY', w / 2, 230);
+    c.font = 'italic 14px Georgia'; c.fillText('psychomagic & cinema', w / 2, 254);
+  });
+  const g = new THREE.Group();
+  const book = mesh(new THREE.BoxGeometry(0.62, 0.92, 0.08), [mat(0x8a2a1e), mat(0x8a2a1e), mat(0xf3efe7), mat(0xf3efe7), new THREE.MeshStandardMaterial({ map: cover, roughness: 0.7 }), mat(0x8a2a1e)], 0, 0.46, 0);
+  g.add(book);
+  g.position.set(s.x + 0.3, s.y, CASE_D / 2 + 0.15);
+  g.rotation.set(-0.1, -0.15, 0);
+  bookcase.add(g);
+  register(g, 'jodorowsky', 'Jodorowsky, mentor', { panel: 'mentors' });
 })();
 books(slots[2][0], 0.04, 0.5, 3);
-vessel(slots[2][0], 0.45, 0.48, 0.22, C.travertine);
-vessel(slots[2][0], 0.68, 0.3, 0.16, 0xb5673f);
+(function bradburyBook() {
+  s = slots[2][0];
+  const cover = canvasTexture(192, 288, (c, w, h) => {
+    const sky = c.createLinearGradient(0, 0, 0, h);
+    sky.addColorStop(0, '#2a1a3a'); sky.addColorStop(1, '#c8642e');
+    c.fillStyle = sky; c.fillRect(0, 0, w, h);
+    for (let i = 0; i < 40; i++) { c.fillStyle = 'rgba(255,240,210,.7)'; c.fillRect(rand() * w, rand() * 140, 2, 2); }
+    c.fillStyle = '#e8b04a'; c.beginPath(); c.arc(140, 70, 22, 0, 7); c.fill();
+    c.fillStyle = '#f3efe7'; c.textAlign = 'center';
+    c.font = '600 22px Georgia'; c.fillText('BRADBURY', w / 2, 240);
+    c.font = 'italic 13px Georgia'; c.fillText('stories', w / 2, 262);
+  });
+  const g = new THREE.Group();
+  g.add(mesh(new THREE.BoxGeometry(0.5, 0.76, 0.06), [mat(0x2a1a3a), mat(0x2a1a3a), mat(0xf3efe7), mat(0xf3efe7), new THREE.MeshStandardMaterial({ map: cover, roughness: 0.7 }), mat(0x2a1a3a)], 0, 0.38, 0));
+  g.position.set(s.x + s.w * 0.27, s.y, CASE_D / 2 + 0.2);
+  g.rotation.set(-0.14, -0.05, 0);
+  bookcase.add(g);
+  register(g, 'bradbury', 'Ray Bradbury, mentor', { panel: 'mentors' });
+})();
 
 // column 4: mailbox (contact), books
 (function mailbox() {
@@ -661,7 +756,7 @@ books(slots[3][2], 0.05, 0.75, 4);
 books(slots[3][1], 0.05, 0.6, 0, { lean: true });
 bookStack(slots[3][1], slots[3][1].x + 0.38, 4, 3);
 bookStack(slots[3][0], slots[3][0].x - 0.25, 5, 0);
-vessel(slots[3][0], 0.3, 0.72, 0.2, C.stone);
+books(slots[3][0], 0.5, 0.95, 3);
 
 // ---------- DJ table: white controller + white speakers ----------
 (function djTable() {
@@ -839,7 +934,8 @@ function layout() {
     place(pieces.shelf, -4.1, 7.1, 0);
     place(pieces.poster, -5.75, 4.45, 0);
     place(pieces.board, -3.25, 4.55, 0);
-    place(pieces.painting, -0.75, 4.45, 0);
+    place(pieces.hydra, -0.85, 4.45, 0);
+    place(pieces.painting, 0.8, 5.1, 0, 0.8);
     place(pieces.bookcase, 4.75, 0, 0);
     place(pieces.dj, -1.05, 0, 0.9, 1.12);
     place(pieces.pom, 1.35, 0, 2.3, 0.72);
@@ -847,9 +943,10 @@ function layout() {
     rect = { x0: -8.3, x1: 8.5, y0: -1.3, y1: 9.1 };
   } else {
     place(pieces.shelf, -0.4, 12.2, 0, 0.9);
-    place(pieces.poster, -2.6, 9.6, 0, 0.9);
-    place(pieces.board, 0.1, 9.55, 0, 0.75);
-    place(pieces.painting, 2.6, 9.8, 0, 0.75);
+    place(pieces.poster, -2.85, 9.6, 0, 0.65);
+    place(pieces.board, -0.85, 9.55, 0, 0.6);
+    place(pieces.hydra, 1.05, 9.6, 0, 0.65);
+    place(pieces.painting, 2.85, 9.75, 0, 0.6);
     place(pieces.bookcase, 0, 0, 0, 0.95);
     place(pieces.dj, -0.6, 0, 2.6, 1.0);
     place(pieces.pom, 2.1, 0, 3.2, 0.68);
@@ -904,7 +1001,7 @@ function applyTheme() {
   fill.intensity = night ? 0.08 : 0.5;
   moonLight.intensity = night ? 6 : 0;
   pieces.moon.material.emissiveIntensity = night ? 1.1 : 0.05;
-  scene.background.set(night ? 0x120b0d : 0x24171a);
+  scene.background.set(night ? 0x10142f : 0x1e2559);
   scene.environmentIntensity = night ? 0.15 : 0.55;
 }
 new MutationObserver(applyTheme).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
@@ -925,14 +1022,17 @@ function pick(clientX, clientY) {
 function glow(key, amount, color = 0xffe2a8) {
   const t = things.get(key);
   t.group.traverse(o => {
-    if (!o.isMesh || !o.material.emissive) return;
-    const base = o.material.userData.baseEmissive;
-    if (amount > 0) { o.material.emissive.set(color); o.material.emissiveIntensity = amount; }
-    else if (base) { o.material.emissive.copy(base); o.material.emissiveIntensity = o.material.userData.baseIntensity ?? o.material.emissiveIntensity; }
+    if (!o.isMesh) return;
+    for (const m of [].concat(o.material)) {
+      if (!m.emissive) continue;
+      const base = m.userData.baseEmissive;
+      if (amount > 0) { m.emissive.set(color); m.emissiveIntensity = amount; }
+      else if (base) { m.emissive.copy(base); m.emissiveIntensity = m.userData.baseIntensity ?? m.emissiveIntensity; }
+    }
   });
 }
 // remember each material's own emissive intensity (screens, LEDs, moon)
-for (const t of things.values()) t.group.traverse(o => { if (o.isMesh) o.material.userData.baseIntensity = o.material.emissiveIntensity; });
+for (const t of things.values()) t.group.traverse(o => { if (o.isMesh) for (const m of [].concat(o.material)) m.userData.baseIntensity = m.emissiveIntensity; });
 function setHover(key) {
   if (hovered === key) return;
   if (hovered && !hints) glow(hovered, 0);
@@ -960,6 +1060,7 @@ function activate(key) {
   setHover(null);
   if (t.action === 'lamp') { document.getElementById('lamp')?.click(); toast(night ? 'Lights on' : 'Moonlight'); return; }
   if (t.action === 'wiggle') { anim.wiggle = 1; toast('Thanks for the water!'); return; }
+  if (t.action === 'cheers') { toast('Salud! Don Julio 1942'); return; }
   if (key === 'pup') { anim.wag = 1; toast('Woof! Wookie says hi'); }
   // ease the camera toward the object, then open its panel
   const c = new THREE.Box3().setFromObject(t.group).getCenter(new THREE.Vector3());
@@ -1016,7 +1117,6 @@ function frame() {
 
   if (!reduceMotion) {
     pieces.drum.rotation.y += dt * 1.6;
-    pieces.globe.rotation.y += dt * 0.25;
     pieces.platters.forEach((pl, i) => { pl.rotation.y -= dt * (i ? 3.5 : 3.2); });
     const beat = Math.pow(Math.max(0, Math.sin(time * Math.PI * 2 * 2)), 8);
     pieces.cones.forEach(c => { c.position.z = 0.305 + beat * 0.012; });

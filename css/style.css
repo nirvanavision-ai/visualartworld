@@ -424,7 +424,7 @@ body {
 #room3d, #labels3d, .ui3d { display: none; }
 .view3d { display: none; margin-left: auto; }
 body:not(.mode-3d):not(.no-3d) .view3d { display: inline-block; }
-body.mode-3d { overflow: hidden; background: #24171a; --d-ink: #2a2724; --d-soft: #4a4239; --d-gold: #9a7b48; --d-card: rgba(247, 244, 238, .97); --display: "Playfair Display", var(--serif); --ui: "Karla", var(--sans); }
+body.mode-3d { overflow: hidden; background: #1e2559; --d-ink: #2a2724; --d-soft: #4a4239; --d-gold: #9a7b48; --d-card: rgba(247, 244, 238, .97); --display: "Playfair Display", var(--serif); --ui: "Karla", var(--sans); }
 body.mode-3d .room { display: none; }
 body.mode-3d #room3d { display: block; position: fixed; inset: 0; z-index: 1; touch-action: manipulation; }
 body.mode-3d #room3d canvas { display: block; width: 100%; height: 100%; }
@@ -534,3 +534,4 @@ body.mode-3d #panel-about { background: linear-gradient(90deg, #efe4d2 0, #f6eee
 .lede3d { color: #e2d6c4; }
 .found3d { color: #cbb894; }
 .photo-wookie img { max-height: 360px; object-fit: cover; object-position: 50% 30%; }
+body.mode-3d .places a { color: var(--d-gold); font-weight: 600; white-space: nowrap; }
