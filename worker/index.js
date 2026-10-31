@@ -5,8 +5,10 @@ import { DurableObject } from 'cloudflare:workers';
 
 const COOKIE = 'vaw_admin';
 const SESSION_DAYS = 14;
-const MAX_FILE = 95 * 1024 * 1024; // Workers accept request bodies up to 100 MB
+const MAX_FILE = 95 * 1024 * 1024; // one request body; Workers accept up to 100 MB
+const MAX_TOTAL = 2 * 1024 * 1024 * 1024; // a whole file sent in parts
 const CHUNK = 1536 * 1024; // a single SQLite value tops out at 2 MB, so files are stored in chunks
+const PART_CHUNKS = 16; // big files arrive in parts of 16 chunks (24 MB) each
 // shown in the browser; anything else (html, svg, scripts, zips…) is only offered as a download
 const INLINE = /^(image\/(jpeg|png|webp|gif|avif)|audio\/[\w.+-]+|video\/[\w.+-]+|application\/pdf)$/;
 
@@ -37,12 +39,22 @@ export class SiteStore extends DurableObject {
 
   // media: small early uploads live in media.data; everything else in media_chunks (chunks > 0)
   beginMedia(type, name) {
+    // forget uploads that were started more than a day ago and never finished
+    for (const r of this.sql.exec('SELECT id FROM media WHERE chunks < 0 AND created < ?', Date.now() - 864e5).toArray()) this.deleteMedia(r.id);
     const id = crypto.randomUUID().replace(/-/g, '');
     this.sql.exec('INSERT INTO media (id, type, name, size, data, created, chunks) VALUES (?, ?, ?, 0, ?, ?, -1)', id, type, name, new Uint8Array(0), Date.now());
     return id;
   }
   putChunk(id, n, data) { this.sql.exec('INSERT OR REPLACE INTO media_chunks (id, n, data) VALUES (?, ?, ?)', id, n, data); }
   finishMedia(id, size, chunks) { this.sql.exec('UPDATE media SET size = ?, chunks = ? WHERE id = ?', size, chunks, id); }
+  pending(id) { return this.sql.exec('SELECT 1 FROM media WHERE id = ? AND chunks < 0', id).toArray().length > 0; }
+  finishParts(id) {
+    // all chunks must be there, numbered 0..n-1 with no gaps
+    const r = this.sql.exec('SELECT COUNT(*) AS n, MAX(n) AS hi, SUM(length(data)) AS size FROM media_chunks WHERE id = ?', id).toArray()[0];
+    if (!r.n || r.hi !== r.n - 1) return null;
+    this.finishMedia(id, r.size, r.n);
+    return r.size;
+  }
   mediaInfo(id) {
     const r = this.sql.exec('SELECT type, name, size, chunks FROM media WHERE id = ? AND chunks >= 0', id).toArray()[0];
     return r || null;
@@ -291,6 +303,35 @@ export default {
           throw e;
         }
         return json({ ok: true, id, type, url: '/api/media/' + id });
+      }
+      // big files: start, send 24 MB parts, then finish
+      if (path === '/api/media/start' && method === 'POST') {
+        const b = await req.json().catch(() => ({}));
+        const type = String(b.type || '').toLowerCase().replace(/[^\w.+\/-]/g, '').slice(0, 100) || 'application/octet-stream';
+        if (!(b.size > 0)) return fail(400, 'Empty file.');
+        if (b.size > MAX_TOTAL) return fail(413, 'That file is too large (max 2 GB).');
+        const id = await store.beginMedia(type, String(b.name || '').slice(0, 200));
+        return json({ ok: true, id, partSize: CHUNK * PART_CHUNKS });
+      }
+      const partMatch = path.match(/^\/api\/media\/([a-f0-9]{32})\/part\/(\d{1,4})$/);
+      if (partMatch && method === 'PUT') {
+        const id = partMatch[1], part = Number(partMatch[2]);
+        if (part * CHUNK * PART_CHUNKS >= MAX_TOTAL) return fail(413, 'That file is too large (max 2 GB).');
+        if (!(await store.pending(id))) return fail(404, 'Upload not found. Please try again.');
+        const data = new Uint8Array(await req.arrayBuffer());
+        if (!data.byteLength || data.byteLength > CHUNK * PART_CHUNKS) return fail(400, 'Bad upload part.');
+        for (let i = 0, off = 0; off < data.byteLength; i++, off += CHUNK) await store.putChunk(id, part * PART_CHUNKS + i, data.slice(off, off + CHUNK));
+        return json({ ok: true });
+      }
+      const doneMatch = path.match(/^\/api\/media\/([a-f0-9]{32})\/(finish|cancel)$/);
+      if (doneMatch && method === 'POST') {
+        const id = doneMatch[1];
+        if (!(await store.pending(id))) return fail(404, 'Upload not found. Please try again.');
+        if (doneMatch[2] === 'cancel') { await store.deleteMedia(id); return json({ ok: true }); }
+        const size = await store.finishParts(id);
+        if (!size) { await store.deleteMedia(id); return fail(400, 'Part of the file went missing. Please try again.'); }
+        const info = await store.mediaInfo(id);
+        return json({ ok: true, id, type: info.type, size, url: '/api/media/' + id });
       }
       if (path === '/api/media' && method === 'GET') return json(await store.listMedia());
       if (mediaMatch && method === 'DELETE') { await store.deleteMedia(mediaMatch[1]); return json({ ok: true }); }

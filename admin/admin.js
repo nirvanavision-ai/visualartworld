@@ -37,6 +37,7 @@
   // ---------- tabs ----------
   document.querySelectorAll('[data-tab]').forEach(function (b) {
     b.addEventListener('click', function () {
+      hideObjBar();
       document.querySelectorAll('[data-tab]').forEach(function (x) { x.setAttribute('aria-selected', x === b ? 'true' : 'false'); });
       document.querySelectorAll('[data-panel]').forEach(function (p) { p.hidden = p.dataset.panel !== b.dataset.tab; });
       if (b.dataset.tab === 'inbox') loadInbox();
@@ -81,7 +82,7 @@
   }
   function select(k) {
     if (dirty && !confirm('You have unsaved changes. Leave this section without saving?')) return;
-    current = k; dirty = false; setCode(false);
+    hideObjBar(); current = k; dirty = false; setCode(false);
     $('secTitle').textContent = LABELS[k] || k;
     $('saveStatus').textContent = edits[k] !== undefined ? 'Edited' : 'Original';
     $('saveStatus').className = 'status';
@@ -93,13 +94,30 @@
     frame.srcdoc = '<!doctype html><html><head><meta charset="utf-8"><base href="/">' +
       '<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&family=Caveat:wght@500;700&family=Playfair+Display:wght@400;600&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">' +
       '<link rel="stylesheet" href="css/style.css"><style>html,body{overflow:auto!important;height:auto!important}body{padding:24px 12px;background:#272c52;margin:0}' +
-      '.panel{position:static;display:block;max-height:none;margin:0 auto;animation:none!important}.panel-body{outline:none;min-height:300px}img{max-width:100%}</style></head>' +
+      '.panel{position:static;display:block;max-height:none;margin:0 auto;animation:none!important}.panel-body{outline:none;min-height:300px}img{max-width:100%}.panel-body img,.panel-body video,.panel-body a{cursor:pointer}.panel-body img:hover,.panel-body a:hover,.vaw-sel{outline:3px solid #c9a96a!important;outline-offset:3px}</style></head>' +
       '<body class="mode-3d"><dialog class="panel" id="panel-' + k + '" open><div class="panel-body" contenteditable="true"></div></dialog></body></html>';
     frame.onload = function () {
       var body = editable();
       body.innerHTML = htmlFor(k);
       body.addEventListener('input', markDirty);
       frame.contentDocument.addEventListener('keydown', function (e) { if ((e.metaKey || e.ctrlKey) && e.key === 's') { e.preventDefault(); save(); } });
+      // files dropped onto the text are uploaded and placed where they were dropped
+      var fd = frame.contentDocument;
+      // clicking a photo, video or link opens the bar to replace it
+      fd.addEventListener('click', function (e) {
+        var t = e.target.closest && e.target.closest('img, video, audio, a');
+        if (t && body.contains(t)) { e.preventDefault(); showObjBar(t); } else hideObjBar();
+      });
+      fd.addEventListener('scroll', placeObjBar);
+      fd.addEventListener('keydown', hideObjBar);
+      fd.addEventListener('dragover', function (e) { if (e.dataTransfer && Array.prototype.indexOf.call(e.dataTransfer.types || [], 'Files') >= 0) e.preventDefault(); });
+      fd.addEventListener('drop', function (e) {
+        var files = Array.prototype.slice.call((e.dataTransfer && e.dataTransfer.files) || []); if (!files.length) return;
+        e.preventDefault();
+        var r = fd.caretRangeFromPoint ? fd.caretRangeFromPoint(e.clientX, e.clientY) : null;
+        if (r) { var sel = frame.contentWindow.getSelection(); sel.removeAllRanges(); sel.addRange(r); }
+        uploadAll(files, function (items) { items.forEach(function (it) { insertHTML(embedFor(it)); }); });
+      });
     };
   }
   function editable() { return frame.contentDocument && frame.contentDocument.querySelector('.panel-body'); }
@@ -107,6 +125,7 @@
   $('plainText').addEventListener('input', markDirty);
   $('code').addEventListener('input', markDirty);
   function setCode(on) {
+    hideObjBar();
     var body = editable();
     if (on && body) $('code').value = body.innerHTML;
     if (!on && codeMode && body) body.innerHTML = $('code').value;
@@ -114,6 +133,7 @@
     $('code').hidden = !on; frame.hidden = on || !!PLAIN[current];
   }
   function currentHTML() {
+    hideObjBar();
     if (PLAIN[current]) return esc($('plainText').value.trim());
     return codeMode ? $('code').value : editable().innerHTML;
   }
@@ -191,45 +211,145 @@
       });
     }).then(function (b) { return b && b.size < file.size ? b : file; }, function () { return file; });
   }
-  function send(blob, type, name, label) {
+  function xhr(method, url, body, type, onprog) {
     // XHR rather than fetch so we can show upload progress for big videos
     return new Promise(function (resolve, reject) {
       var x = new XMLHttpRequest();
-      x.open('POST', '/api/media');
+      x.open(method, url);
       x.setRequestHeader('x-vaw', '1');
-      x.setRequestHeader('content-type', blob.type || type);
-      x.setRequestHeader('x-filename', encodeURIComponent(name));
-      x.upload.onprogress = function (e) { if (e.lengthComputable) toast(label + ' ' + Math.round(e.loaded / e.total * 100) + '%'); };
+      if (type) x.setRequestHeader('content-type', type);
+      if (onprog) x.upload.onprogress = function (e) { if (e.lengthComputable) onprog(e.loaded); };
       x.onload = function () {
         var b = {}; try { b = JSON.parse(x.responseText); } catch (e) {}
         if (x.status === 401) showLogin();
         if (x.status >= 200 && x.status < 300) resolve(b); else reject(new Error(b.error || 'Upload failed (' + x.status + ')'));
       };
       x.onerror = function () { reject(new Error('Upload failed. Check your connection and try again.')); };
-      x.send(blob);
+      x.send(body);
     });
   }
+  function send(blob, type, name, label) {
+    var total = blob.size, show = function (done) { toast(label + ' ' + Math.round(done / total * 100) + '%'); };
+    // big files go up in 24 MB parts (one request can't be over 100 MB); a failed part is retried twice
+    return api('/api/media/start', { method: 'POST', json: { type: blob.type || type, name: name, size: total } }).then(function (s) {
+      var part = s.partSize, count = Math.ceil(total / part), base = '/api/media/' + s.id;
+      function sendPart(i, tries) {
+        if (i >= count) return api(base + '/finish', { method: 'POST', json: {} });
+        return xhr('PUT', base + '/part/' + i, blob.slice(i * part, Math.min(total, (i + 1) * part)), 'application/octet-stream', function (n) { show(i * part + n); })
+          .then(function () { return sendPart(i + 1, 0); }, function (err) {
+            if (tries < 2) return sendPart(i, tries + 1);
+            api(base + '/cancel', { method: 'POST', json: {} }).catch(function () {});
+            throw err;
+          });
+      }
+      return sendPart(0, 0);
+    });
+  }
+  var MAX_MB = 2048;
   function upload(file, label) {
     var type = typeOf(file);
-    if (file.size > 95 * 1024 * 1024) return Promise.reject(new Error(file.name + ' is over 95 MB. Please compress it first.'));
+    if (file.size > MAX_MB * 1024 * 1024) return Promise.reject(new Error(file.name + ' is over 2 GB. Please compress it first.'));
+    if (!file.size) return Promise.reject(new Error(file.name + ' is empty.'));
     return shrink(file, type).then(function (blob) { return send(blob, type, file.name, label); })
       .then(function (b) { return { url: b.url, type: b.type || type, name: file.name }; });
   }
-  function pickFiles(done, accept) {
+  // the file chooser: buttons open it, labels (Upload files / drop box) open it natively, and files can be dropped anywhere
+  function uploadAll(files, done) {
+    if (!files.length) return;
+    var heic = files.some(function (f) { return /hei[cf]$/i.test(f.name); });
+    files.reduce(function (p, f, i) {
+      return p.then(function (acc) { return upload(f, 'Uploading ' + (files.length > 1 ? (i + 1) + ' of ' + files.length : f.name)).then(function (it) { return acc.concat(it); }); });
+    }, Promise.resolve([]))
+      .then(function (items) { toast(heic ? 'Uploaded. Note: HEIC photos only show in Safari, so save them as JPG for everyone else.' : 'Uploaded'); done(items); })
+      .catch(function (err) { toast(err.message); loadPhotos(); });
+  }
+  function prepPicker(done, accept) {
     var input = $('fileInput');
     input.value = '';
     if (accept) input.setAttribute('accept', accept); else input.removeAttribute('accept');
-    input.onchange = function () {
-      var files = Array.prototype.slice.call(input.files); if (!files.length) return;
-      var heic = files.some(function (f) { return /hei[cf]$/i.test(f.name); });
-      files.reduce(function (p, f, i) {
-        return p.then(function (acc) { return upload(f, 'Uploading ' + (files.length > 1 ? (i + 1) + ' of ' + files.length : f.name)).then(function (it) { return acc.concat(it); }); });
-      }, Promise.resolve([]))
-        .then(function (items) { toast(heic ? 'Uploaded. Note: HEIC photos only show in Safari, so save them as JPG for everyone else.' : 'Uploaded'); done(items); })
-        .catch(function (err) { toast(err.message); });
-    };
+    input.onchange = function () { uploadAll(Array.prototype.slice.call(input.files || []), done); };
+    return input;
+  }
+  function pickFiles(done, accept) {
+    var input = prepPicker(done, accept);
+    try { if (input.showPicker) { input.showPicker(); return; } } catch (e) { /* fall back to click */ }
     input.click();
   }
+  function filesDone() { loadPhotos(); }
+
+  // floating bar over a clicked photo / video / link in the editor
+  var objTarget = null;
+  function isMedia(el) { return /^(IMG|VIDEO|AUDIO)$/.test(el.tagName); }
+  function showObjBar(el) {
+    if (objTarget) objTarget.classList.remove('vaw-sel');
+    objTarget = el; el.classList.add('vaw-sel');
+    var media = isMedia(el);
+    $('objKind').textContent = el.tagName === 'IMG' ? 'Photo' : el.tagName === 'A' ? 'Link or button' : el.tagName === 'VIDEO' ? 'Video' : 'Music';
+    $('objReplace').textContent = el.tagName === 'IMG' ? 'Upload a new photo' : el.tagName === 'A' ? 'Link it to an uploaded file' : 'Upload a replacement';
+    $('objLink').hidden = media;
+    $('objText').hidden = media;
+    $('objAlt').hidden = el.tagName !== 'IMG';
+    $('objbar').hidden = false;
+    placeObjBar();
+  }
+  function hideObjBar() {
+    if (objTarget) { objTarget.classList.remove('vaw-sel'); if (!objTarget.className) objTarget.removeAttribute('class'); }
+    objTarget = null; $('objbar').hidden = true;
+  }
+  function placeObjBar() {
+    if (!objTarget || $('objbar').hidden) return;
+    var f = frame.getBoundingClientRect(), r = objTarget.getBoundingClientRect(), bar = $('objbar');
+    var top = f.top + r.top + 8, left = f.left + r.left + 8;
+    top = Math.max(f.top + 4, Math.min(top, f.bottom - bar.offsetHeight - 4));
+    left = Math.max(8, Math.min(left, window.innerWidth - bar.offsetWidth - 8));
+    bar.style.top = top + 'px'; bar.style.left = left + 'px';
+  }
+  window.addEventListener('scroll', placeObjBar, true);
+  window.addEventListener('resize', placeObjBar);
+  function replaceWith(el, it) {
+    if (el.tagName === 'A') {
+      el.setAttribute('href', it.url); el.target = '_blank'; el.rel = 'noopener';
+    } else if (el.tagName === 'IMG' && /^image\//.test(it.type)) {
+      el.setAttribute('src', it.url); el.removeAttribute('srcset');
+    } else if (/^(video|audio)\//.test(it.type) && el.tagName !== 'IMG' && el.tagName === it.type.split('/')[0].toUpperCase()) {
+      el.setAttribute('src', it.url);
+    } else {
+      var d = frame.contentDocument.createElement('div'); d.innerHTML = embedFor(it);
+      var node = d.querySelector('img, video, audio, a') || d.firstChild;
+      el.parentNode.replaceChild(node, el);
+    }
+    markDirty();
+  }
+  $('objReplace').addEventListener('click', function () {
+    // a <label for="fileInput">: the browser opens the chooser; we decide what happens with the file
+    var el = objTarget;
+    prepPicker(function (items) { if (el && items[0]) replaceWith(el, items[0]); hideObjBar(); }, el && el.tagName === 'IMG' ? 'image/*' : '');
+  });
+  $('objLink').addEventListener('click', function () {
+    var el = objTarget; if (!el) return;
+    var u = prompt('Link address (https://… or mailto:…)', el.getAttribute('href') || ''); if (u === null) return;
+    u = u.trim(); if (!u) return;
+    if (!/^(https?:|mailto:|tel:|\/|#)/i.test(u)) u = 'https://' + u;
+    el.setAttribute('href', u); if (/^http/i.test(u)) { el.target = '_blank'; el.rel = 'noopener'; }
+    markDirty(); hideObjBar();
+  });
+  $('objText').addEventListener('click', function () {
+    var el = objTarget; if (!el) return;
+    var t = prompt('Text shown on the link or button', el.textContent); if (t === null || !t.trim()) return;
+    el.textContent = t.trim(); markDirty(); hideObjBar();
+  });
+  $('objAlt').addEventListener('click', function () {
+    var el = objTarget; if (!el) return;
+    var t = prompt('Describe the photo (read aloud for blind visitors, shown if it fails to load)', el.getAttribute('alt') || ''); if (t === null) return;
+    el.setAttribute('alt', t.trim()); markDirty(); hideObjBar();
+  });
+  $('objRemove').addEventListener('click', function () {
+    var el = objTarget; if (!el) return;
+    if (el.tagName === 'A') { el.parentNode.replaceChild(frame.contentDocument.createTextNode(el.textContent), el); }
+    else { var fig = el.closest('figure'); (fig && fig.querySelectorAll('img, video, audio').length === 1 ? fig : el).remove(); }
+    markDirty(); hideObjBar();
+  });
+  $('objClose').addEventListener('click', hideObjBar);
   function embedFor(it) {
     var u = esc(it.url), name = esc(it.name);
     if (/^image\//.test(it.type)) return '<p><img src="' + u + '" alt="" loading="lazy" style="max-width:100%;border-radius:6px"></p>';
@@ -249,7 +369,24 @@
       }).join('') : '<div class="empty">No files yet. Upload photos, music, videos or PDFs to use them on your site.</div>';
     });
   }
-  $('uploadBtn').addEventListener('click', function () { pickFiles(function () { loadPhotos(); }, ''); });
+  ['uploadBtn', 'drop'].forEach(function (id) {
+    // these are <label for="fileInput">, so the browser opens the chooser itself; we only set what happens next
+    $(id).addEventListener('click', function () { prepPicker(filesDone, ''); });
+  });
+  $('uploadBtn').addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pickFiles(filesDone, ''); } });
+  var dragDepth = 0;
+  function hasFiles(e) { return e.dataTransfer && Array.prototype.indexOf.call(e.dataTransfer.types || [], 'Files') >= 0; }
+  window.addEventListener('dragenter', function (e) { if (!hasFiles(e)) return; e.preventDefault(); dragDepth++; document.body.classList.add('dragging'); });
+  window.addEventListener('dragover', function (e) { if (hasFiles(e)) e.preventDefault(); });
+  window.addEventListener('dragleave', function () { if (--dragDepth <= 0) { dragDepth = 0; document.body.classList.remove('dragging'); } });
+  window.addEventListener('drop', function (e) {
+    if (!hasFiles(e)) return;
+    e.preventDefault(); dragDepth = 0; document.body.classList.remove('dragging');
+    var files = Array.prototype.slice.call(e.dataTransfer.files || []);
+    var inEditor = !$('app').hidden && !document.querySelector('[data-panel="content"]').hidden;
+    if (inEditor && current) uploadAll(files, function (items) { items.forEach(function (it) { insertHTML(embedFor(it)); }); });
+    else uploadAll(files, filesDone);
+  });
   $('photos').addEventListener('click', function (e) {
     var c = e.target.closest('[data-copy]'), d = e.target.closest('[data-del]');
     if (c) { navigator.clipboard.writeText(location.origin + '/api/media/' + c.dataset.copy).then(function () { toast('Link copied'); }); }
