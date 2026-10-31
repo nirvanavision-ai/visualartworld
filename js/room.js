@@ -949,30 +949,24 @@ books(slots[3][0], 0.5, 0.95, 3);
 })();
 
 // ---------- the Pomeranian ----------
-(function pomeranian() { // Wookie, cut out from ANGIE's own photo and stood in the room facing the camera
+(function pomeranian() { // Wookie in tweed and pearls, cut out from ANGIE's own photo and stood in the room facing the camera
   const g = new THREE.Group();
-  const H = 1.45, W = H * 448 / 549;
+  const H = 1.75, W = H * 512 / 754;
   const tex = new THREE.TextureLoader().load('images/wookie-cutout.png');
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = 4;
   const photo = new THREE.Group();
-  const card = mesh(new THREE.PlaneGeometry(W, H), new THREE.MeshStandardMaterial({ map: tex, alphaTest: 0.35, transparent: true, roughness: 1, side: THREE.DoubleSide }), 0, H / 2 + 0.1, -0.06);
+  const card = mesh(new THREE.PlaneGeometry(W, H), new THREE.MeshStandardMaterial({ map: tex, alphaTest: 0.35, transparent: true, roughness: 1, side: THREE.DoubleSide }), 0, H / 2 - 0.01, 0);
   card.castShadow = false;
   photo.add(card);
   g.add(photo);
-  // round white boucle dog bed Wookie sits in (its rim hides the bottom of the photo)
-  const boucle = new THREE.MeshPhysicalMaterial({ color: 0xf1ede4, roughness: 0.95, sheen: 1, sheenColor: new THREE.Color(0xffffff), sheenRoughness: 0.6, bumpMap: grainTexture(128, false), bumpScale: 1.2 });
-  g.add(cyl(0.62, 0.64, 0.1, boucle, 0, 0.05, 0, 48));
-  const rim = mesh(new THREE.TorusGeometry(0.56, 0.17, 20, 64), boucle, 0, 0.2, 0);
-  rim.rotation.x = Math.PI / 2;
-  g.add(rim);
   // soft contact shadow on the floor
   const shadowTex = canvasTexture(128, 64, (c, w, h) => {
     const r = c.createRadialGradient(w / 2, h / 2, 2, w / 2, h / 2, w / 2);
     r.addColorStop(0, 'rgba(0,0,0,.55)'); r.addColorStop(1, 'rgba(0,0,0,0)');
     c.fillStyle = r; c.fillRect(0, 0, w, h);
   });
-  const shadow = mesh(new THREE.PlaneGeometry(1.8, 0.9), new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false }), 0, 0.012, 0.05);
+  const shadow = mesh(new THREE.PlaneGeometry(1.5, 0.6), new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false }), 0, 0.012, 0.05);
   shadow.rotation.x = -Math.PI / 2;
   shadow.castShadow = false;
   g.add(shadow);
