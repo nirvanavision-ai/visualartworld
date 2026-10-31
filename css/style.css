@@ -535,3 +535,21 @@ body.mode-3d #panel-about { background: linear-gradient(90deg, #efe4d2 0, #f6eee
 .found3d { color: #cbb894; }
 .photo-wookie img { max-height: 360px; object-fit: cover; object-position: 50% 30%; }
 body.mode-3d .places a { color: var(--d-gold); font-weight: 600; white-space: nowrap; }
+
+/* contact form (messages land in the /admin inbox) */
+.contact-form { padding: 0 clamp(28px, 5vw, 56px) clamp(28px, 5vw, 48px); margin-top: -12px; display: grid; gap: 12px; }
+.contact-form h3 { margin: 0; }
+.contact-form .cf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.contact-form label { display: grid; gap: 6px; font-size: 14px; font-weight: 500; }
+.contact-form input, .contact-form textarea {
+  font: inherit; font-weight: 400; color: var(--ink); background: rgba(255, 255, 255, .7);
+  border: 1px solid rgba(0, 0, 0, .18); border-radius: 10px; padding: 10px 12px; width: 100%; box-sizing: border-box;
+}
+.contact-form textarea { resize: vertical; min-height: 110px; }
+.contact-form input:focus, .contact-form textarea:focus { outline: 2px solid var(--d-gold, #9a7b48); outline-offset: 1px; }
+.contact-form .cf-hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.contact-form .cf-foot { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.contact-form .cf-send { font: inherit; font-weight: 600; letter-spacing: .04em; border: 0; border-radius: 999px; padding: 10px 26px; background: var(--ink); color: #fff; cursor: pointer; }
+.contact-form .cf-send:disabled { opacity: .5; cursor: wait; }
+.contact-form .cf-status { margin: 0; font-size: 14px; }
+@media (max-width: 560px) { .contact-form .cf-row { grid-template-columns: 1fr; } }

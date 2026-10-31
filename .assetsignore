@@ -6,3 +6,7 @@ node_modules
 *.md
 .gitignore
 .wrangler
+worker
+.dev.vars
+package.json
+package-lock.json

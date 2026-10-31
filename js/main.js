@@ -112,4 +112,30 @@
 
   var y = document.getElementById('year');
   if (y) y.textContent = new Date().getFullYear();
+
+  // content edited in /admin replaces the matching [data-editable] block
+  fetch('/api/content').then(function (r) { return r.ok ? r.json() : {}; }).then(function (edits) {
+    Object.keys(edits || {}).forEach(function (key) {
+      document.querySelectorAll('[data-editable="' + key + '"]').forEach(function (el) { el.innerHTML = edits[key]; });
+    });
+  }).catch(function () {});
+
+  // contact form -> /api/contact (lands in the admin inbox)
+  var form = document.getElementById('contactForm');
+  if (form) form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var status = form.querySelector('.cf-status');
+    var btn = form.querySelector('.cf-send');
+    var data = { name: form.name.value, email: form.email.value, message: form.message.value, website: form.website.value };
+    if (!data.message.trim()) { status.textContent = 'Please write a message first.'; form.message.focus(); return; }
+    btn.disabled = true; status.textContent = 'Sending…';
+    fetch('/api/contact', { method: 'POST', headers: { 'content-type': 'application/json', 'x-vaw': '1' }, body: JSON.stringify(data) })
+      .then(function (r) { return r.json().then(function (b) { return { ok: r.ok, body: b }; }); })
+      .then(function (res) {
+        if (res.ok) { form.reset(); status.textContent = 'Thank you! Your message is on its way.'; }
+        else status.textContent = res.body.error || 'That didn\'t send. Please try again.';
+      })
+      .catch(function () { status.textContent = 'That didn\'t send. You can email ngelight@gmail.com instead.'; })
+      .then(function () { btn.disabled = false; });
+  });
 })();

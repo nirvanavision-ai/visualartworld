@@ -23,8 +23,8 @@
   <div id="labels3d"><span id="chip3d" class="chip3d" aria-hidden="true"></span></div>
   <div class="ui3d">
     <div class="intro3d">
-      <h1 class="title3d">Welcome to my studio</h1>
-      <p class="lede3d">Click around and see what you find, or use the menu for a quicker way through.</p>
+      <h1 class="title3d" data-editable="intro-title">Welcome to my studio</h1>
+      <p class="lede3d" data-editable="intro-lede">Click around and see what you find, or use the menu for a quicker way through.</p>
       <p class="found3d" id="found3d">0 of 21 discovered</p>
     </div>
     <div class="actions3d">
@@ -327,7 +327,7 @@
 
   <dialog class="panel" id="panel-about" aria-labelledby="t-about">
     <button class="close" type="button" aria-label="Close">×</button>
-    <div class="panel-body">
+    <div class="panel-body" data-editable="about">
       <p class="kicker">About me</p>
       <h2 id="t-about">Hi, I'm Angelica.</h2>
       <div class="split">
@@ -364,7 +364,7 @@
 
   <dialog class="panel" id="panel-painting" aria-labelledby="t-painting">
     <button class="close" type="button" aria-label="Close">×</button>
-    <div class="panel-body">
+    <div class="panel-body" data-editable="painting">
       <p class="kicker">Painting</p>
       <h2 id="t-painting">[A few canvases I love]</h2>
       <p class="lead">[One line about how and what you paint: medium, themes, what painting gives you.]</p>
@@ -378,7 +378,7 @@
 
   <dialog class="panel" id="panel-photo" aria-labelledby="t-photo">
     <button class="close" type="button" aria-label="Close">×</button>
-    <div class="panel-body">
+    <div class="panel-body" data-editable="photo">
       <p class="kicker">Photography</p>
       <h2 id="t-photo">Award-winning photography, from galleries to ceremonies.</h2>
       <p class="lead">From a solo show at the Pacific Design Center to 12 years photographing ceremonies at Rinzai-ji, my photography is about witnessing moments that might otherwise be lost.</p>
@@ -415,7 +415,7 @@
 
   <dialog class="panel" id="panel-film" aria-labelledby="t-film">
     <button class="close" type="button" aria-label="Close">×</button>
-    <div class="panel-body">
+    <div class="panel-body" data-editable="film">
       <p class="kicker">Filmmaking</p>
       <h2 id="t-film">Ancient wisdom. Neural cinema.</h2>
       <p class="lead">Award-winning cinematographer, director and editor: documentaries rooted in cultural anthropology and traditional knowledge, plus broadcast, branded content and music videos.</p>
@@ -438,7 +438,7 @@
 
   <dialog class="panel" id="panel-dj" aria-labelledby="t-dj">
     <button class="close" type="button" aria-label="Close">×</button>
-    <div class="panel-body">
+    <div class="panel-body" data-editable="dj">
       <p class="kicker">Music &amp; DJ</p>
       <h2 id="t-dj">Producer, songwriter, DJ.</h2>
       <p class="lead">I write and produce my own songs, and I DJ. [A line about your sound: genres, influences, where you play.]</p>
@@ -456,7 +456,7 @@
 
   <dialog class="panel" id="panel-animation" aria-labelledby="t-animation">
     <button class="close" type="button" aria-label="Close">×</button>
-    <div class="panel-body">
+    <div class="panel-body" data-editable="animation">
       <p class="kicker">Animation</p>
       <h2 id="t-animation">From thaumatropes to real-time 3D.</h2>
       <p class="lead">I love the whole lineage of moving pictures, from spinning optical toys to Unreal Engine worlds, and I make VFX, motion graphics and 3D characters for films, campaigns and the web.</p>
@@ -472,7 +472,7 @@
 
   <dialog class="panel" id="panel-coding" aria-labelledby="t-coding">
     <button class="close" type="button" aria-label="Close">×</button>
-    <div class="panel-body">
+    <div class="panel-body" data-editable="coding">
       <p class="kicker">Web &amp; games</p>
       <h2 id="t-coding">Interactive worlds you can click, play and explore.</h2>
       <p class="lead">I design and develop interactive websites and games: Webflow, WordPress and Elementor builds, UI/UX, interactive portfolios, and real-time 3D in Unreal Engine and Blender.</p>
@@ -503,7 +503,7 @@
 
   <dialog class="panel" id="panel-inventions" aria-labelledby="t-inventions">
     <button class="close" type="button" aria-label="Close">×</button>
-    <div class="panel-body">
+    <div class="panel-body" data-editable="inventions">
       <p class="kicker">Inventions</p>
       <h2 id="t-inventions">[Things I've dreamed up and built]</h2>
       <p class="lead">[One line about why you invent: the problems you like to solve.]</p>
@@ -529,7 +529,7 @@
 
   <dialog class="panel" id="panel-security" aria-labelledby="t-security">
     <button class="close" type="button" aria-label="Close">×</button>
-    <div class="panel-body">
+    <div class="panel-body" data-editable="security">
       <p class="kicker">Ethical hacking &amp; OSINT</p>
       <h2 id="t-security">Finding what's hidden, the right way.</h2>
       <p class="lead">I'm an ethical hacker and open-source intelligence (OSINT) researcher. The same curiosity that drives my documentaries drives this: following the clues, verifying sources, and piecing together the real story.</p>
@@ -543,7 +543,7 @@
 
   <dialog class="panel" id="panel-impact" aria-labelledby="t-impact">
     <button class="close" type="button" aria-label="Close">×</button>
-    <div class="panel-body">
+    <div class="panel-body" data-editable="impact">
       <p class="kicker">Awards &amp; impact</p>
       <h2 id="t-impact">Stories that give something back.</h2>
       <p class="lead">Fifteen years of living and working alongside Native American communities shaped everything I make.</p>
@@ -560,7 +560,7 @@
 
   <dialog class="panel" id="panel-mentors" aria-labelledby="t-mentors">
     <button class="close" type="button" aria-label="Close">×</button>
-    <div class="panel-body">
+    <div class="panel-body" data-editable="mentors">
       <p class="kicker">Mentors</p>
       <h2 id="t-mentors">The teachers on my shelf.</h2>
       <p class="lead">The books and records here belong to the people who shaped how I see, listen and tell stories.</p>
@@ -577,7 +577,7 @@
 
   <dialog class="panel" id="panel-wookie" aria-labelledby="t-wookie">
     <button class="close" type="button" aria-label="Close">×</button>
-    <div class="panel-body">
+    <div class="panel-body" data-editable="wookie">
       <p class="kicker">Studio manager</p>
       <h2 id="t-wookie">Meet Wookie.</h2>
       <div class="split">
@@ -595,7 +595,7 @@
 
   <dialog class="panel" id="panel-contact" aria-labelledby="t-contact">
     <button class="close" type="button" aria-label="Close">×</button>
-    <div class="panel-body">
+    <div class="panel-body" data-editable="contact">
       <p class="kicker">Say hello</p>
       <h2 id="t-contact">Let's make something that matters.</h2>
       <p class="lead">Open to films, websites, commissions and collaborations, or just a good conversation.</p>
@@ -605,6 +605,16 @@
         <li><a href="https://instagram.com/[your-handle]" target="_blank" rel="noopener">[Instagram]</a></li>
       </ul>
     </div>
+    <form class="contact-form" id="contactForm" novalidate>
+      <h3>Send me a message</h3>
+      <div class="cf-row">
+        <label>Your name<input name="name" autocomplete="name" maxlength="120"></label>
+        <label>Your email<input name="email" type="email" autocomplete="email" maxlength="200"></label>
+      </div>
+      <label>Message<textarea name="message" rows="5" maxlength="5000" required></textarea></label>
+      <label class="cf-hp" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label>
+      <div class="cf-foot"><button type="submit" class="cf-send">Send</button><p class="cf-status" role="status" aria-live="polite"></p></div>
+    </form>
   </dialog>
 
   <script src="js/main.js"></script>

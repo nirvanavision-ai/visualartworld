@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Studio Admin · Visual Art World</title>
+  <link rel="icon" href="/images/favicon.svg" type="image/svg+xml">
+  <link href="https://fonts.googleapis.com/css2?family=Karla:wght@400;500;600;700&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root { --ink: #23212b; --soft: #6b6878; --line: #e3e0ea; --bg: #f6f5f9; --card: #fff; --accent: #2b3160; --accent-2: #9a7b48; --ok: #2f7a4f; --bad: #b23a3a; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Karla, system-ui, sans-serif; color: var(--ink); background: var(--bg); }
+    button, input, textarea, select { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    h1, h2 { font-family: "Playfair Display", Georgia, serif; font-weight: 400; margin: 0; }
+    .btn { border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 8px 16px; font-weight: 600; }
+    .btn:hover { border-color: var(--accent); }
+    .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .btn.danger { color: var(--bad); }
+    .btn:disabled { opacity: .5; cursor: default; }
+    .muted { color: var(--soft); }
+    [hidden] { display: none !important; }
+
+    /* sign in */
+    .login { min-height: 100vh; display: grid; place-items: center; padding: 16px; background: #272c52; }
+    .login form { background: var(--card); padding: 36px; border-radius: 16px; width: min(380px, 100%); display: grid; gap: 14px; box-shadow: 0 30px 60px -20px rgba(0,0,0,.4); }
+    .login input { border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+    .login .err { color: var(--bad); margin: 0; min-height: 1.2em; font-size: 14px; }
+
+    /* shell */
+    header { display: flex; align-items: center; gap: 16px; padding: 14px 20px; background: #272c52; color: #fff; position: sticky; top: 0; z-index: 5; flex-wrap: wrap; }
+    header h1 { font-size: 22px; margin-right: auto; }
+    header a { color: #cfd3f5; }
+    header .btn { background: transparent; color: #fff; border-color: rgba(255,255,255,.4); }
+    nav.tabs { display: flex; gap: 6px; }
+    nav.tabs button { background: transparent; border: 0; color: #cfd3f5; padding: 8px 14px; border-radius: 999px; font-weight: 600; }
+    nav.tabs button[aria-selected="true"] { background: #fff; color: var(--accent); }
+    .badge { display: inline-block; min-width: 20px; padding: 1px 6px; border-radius: 999px; background: var(--accent-2); color: #fff; font-size: 12px; margin-left: 4px; }
+    main { padding: 20px; max-width: 1280px; margin: 0 auto; }
+
+    /* content editor */
+    .content-wrap { display: grid; grid-template-columns: 260px 1fr; gap: 20px; align-items: start; }
+    .sections { background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; position: sticky; top: 80px; }
+    .sections button { display: flex; justify-content: space-between; gap: 8px; width: 100%; text-align: left; border: 0; border-bottom: 1px solid var(--line); background: none; padding: 12px 14px; }
+    .sections button:last-child { border-bottom: 0; }
+    .sections button[aria-current="true"] { background: #eceaf6; font-weight: 700; }
+    .tag { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--accent-2); }
+    .editor { background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+    .editor-head { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+    .editor-head h2 { font-size: 20px; margin-right: auto; }
+    .toolbar { display: flex; gap: 4px; padding: 8px 10px; border-bottom: 1px solid var(--line); flex-wrap: wrap; background: #faf9fc; position: sticky; top: 64px; z-index: 2; }
+    .toolbar button { border: 1px solid transparent; background: none; border-radius: 8px; padding: 6px 10px; min-width: 34px; }
+    .toolbar button:hover { background: #eceaf6; }
+    .toolbar .sep { width: 1px; background: var(--line); margin: 2px 4px; }
+    iframe.canvas { width: 100%; height: 70vh; border: 0; display: block; background: #272c52; }
+    textarea.code { width: 100%; height: 70vh; border: 0; padding: 16px; font: 13px/1.5 ui-monospace, Menlo, monospace; resize: vertical; }
+    .plain { padding: 20px; display: grid; gap: 8px; }
+    .plain textarea { border: 1px solid var(--line); border-radius: 10px; padding: 12px; min-height: 90px; font-size: 18px; }
+    .status { font-size: 14px; }
+    .status.ok { color: var(--ok); } .status.bad { color: var(--bad); }
+
+    /* inbox */
+    .inbox { display: grid; gap: 10px; }
+    .msg { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+    .msg.unread { border-left: 4px solid var(--accent-2); }
+    .msg header { all: unset; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; cursor: pointer; }
+    .msg .who { font-weight: 700; }
+    .msg .when { margin-left: auto; font-size: 13px; color: var(--soft); }
+    .msg .body { white-space: pre-wrap; margin: 10px 0; line-height: 1.5; }
+    .msg .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .empty { text-align: center; padding: 60px 20px; color: var(--soft); background: var(--card); border: 1px dashed var(--line); border-radius: 14px; }
+
+    /* photos */
+    .photos-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+    .ph { background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+    .ph img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; background: #eee; }
+    .ph div { display: flex; gap: 6px; padding: 8px; }
+    .ph button { flex: 1; font-size: 13px; padding: 6px; }
+
+    .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 10px 18px; border-radius: 999px; font-size: 14px; z-index: 20; }
+    @media (max-width: 800px) {
+      .content-wrap { grid-template-columns: 1fr; }
+      .sections { position: static; display: flex; overflow-x: auto; }
+      .sections button { border-bottom: 0; border-right: 1px solid var(--line); white-space: nowrap; width: auto; }
+      .toolbar { top: 108px; }
+    }
+  </style>
+</head>
+<body>
+  <section class="login" id="login" hidden>
+    <form id="loginForm">
+      <h1>Studio admin</h1>
+      <p class="muted" id="loginNote">Sign in to edit your site and read messages.</p>
+      <input type="password" id="password" placeholder="Password" autocomplete="current-password" required>
+      <button class="btn primary" type="submit">Sign in</button>
+      <p class="err" id="loginErr" role="alert"></p>
+    </form>
+  </section>
+
+  <div id="app" hidden>
+    <header>
+      <h1>Visual Art World · Admin</h1>
+      <nav class="tabs" role="tablist">
+        <button role="tab" data-tab="content" aria-selected="true">Content</button>
+        <button role="tab" data-tab="inbox" aria-selected="false">Inbox <span class="badge" id="unread" hidden>0</span></button>
+        <button role="tab" data-tab="photos" aria-selected="false">Photos</button>
+      </nav>
+      <a href="/" target="_blank" rel="noopener">View site ↗</a>
+      <button class="btn" id="logout" type="button">Sign out</button>
+    </header>
+
+    <main>
+      <section data-panel="content">
+        <div class="content-wrap">
+          <div class="sections" id="sections"></div>
+          <div class="editor">
+            <div class="editor-head">
+              <h2 id="secTitle">Choose a section</h2>
+              <span class="status" id="saveStatus"></span>
+              <button class="btn danger" id="revert" type="button" title="Go back to the original text">Restore original</button>
+              <button class="btn primary" id="save" type="button">Save</button>
+            </div>
+            <div class="toolbar" id="toolbar">
+              <button data-cmd="bold" title="Bold"><b>B</b></button>
+              <button data-cmd="italic" title="Italic"><i>I</i></button>
+              <span class="sep"></span>
+              <button data-block="h2" title="Big heading">H2</button>
+              <button data-block="h3" title="Small heading">H3</button>
+              <button data-block="p" title="Normal text">¶</button>
+              <button data-cmd="insertUnorderedList" title="Bullet list">• List</button>
+              <span class="sep"></span>
+              <button data-act="link" title="Add link">Link</button>
+              <button data-cmd="unlink" title="Remove link">Unlink</button>
+              <button data-act="image" title="Insert photo">Photo</button>
+              <button data-act="video" title="Embed YouTube / Vimeo / SoundCloud">Video</button>
+              <span class="sep"></span>
+              <button data-cmd="undo" title="Undo">↶</button>
+              <button data-cmd="redo" title="Redo">↷</button>
+              <button data-act="html" title="Edit the raw HTML">HTML</button>
+            </div>
+            <iframe class="canvas" id="canvas" title="Section editor"></iframe>
+            <textarea class="code" id="code" hidden spellcheck="false"></textarea>
+            <div class="plain" id="plain" hidden><label class="muted" for="plainText">Text</label><textarea id="plainText"></textarea></div>
+          </div>
+        </div>
+      </section>
+
+      <section data-panel="inbox" hidden>
+        <p class="muted" id="emailNote"></p>
+        <div class="inbox" id="inbox"></div>
+      </section>
+
+      <section data-panel="photos" hidden>
+        <div class="photos-head">
+          <button class="btn primary" id="uploadBtn" type="button">Upload photos</button>
+          <span class="muted">Photos are resized automatically. Use "Copy link" to put one anywhere, or the Photo button in the editor.</span>
+        </div>
+        <div class="grid" id="photos"></div>
+      </section>
+    </main>
+  </div>
+
+  <input type="file" id="fileInput" accept="image/*" multiple hidden>
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="/admin/admin.js"></script>
+</body>
+</html>
