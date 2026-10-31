@@ -554,22 +554,15 @@ let s;
 })();
 books(slots[0][1], 0.04, 0.9, 1);
 books(slots[0][0], 0.04, 0.5, 3);
-(function cohenRecord() { // an LP leaning face-out, original sleeve art
+(function cohenRecord() { // Songs From The Road double LP leaning face-out, vinyl peeking out
   s = slots[0][0];
   const g = new THREE.Group();
-  const sleeve = canvasTexture(256, 256, (c, w, h) => {
-    c.fillStyle = '#1b1a19'; c.fillRect(0, 0, w, h);
-    const glow = c.createRadialGradient(150, 110, 10, 150, 110, 120);
-    glow.addColorStop(0, 'rgba(214,180,120,.55)'); glow.addColorStop(1, 'rgba(214,180,120,0)');
-    c.fillStyle = glow; c.fillRect(0, 0, w, h);
-    c.fillStyle = '#0c0b0a'; c.beginPath(); c.ellipse(140, 120, 36, 46, 0, 0, 7); c.fill();
-    c.beginPath(); c.moveTo(80, 256); c.quadraticCurveTo(140, 150, 200, 256); c.fill();
-    c.fillStyle = '#e9e0cf'; c.font = '600 20px Georgia'; c.fillText('LEONARD', 18, 36); c.fillText('COHEN', 18, 60);
-  });
-  const lp = mesh(new THREE.BoxGeometry(0.72, 0.72, 0.02), [mat(0x1b1a19), mat(0x1b1a19), mat(0x1b1a19), mat(0x1b1a19), new THREE.MeshStandardMaterial({ map: sleeve, roughness: 0.6 }), mat(0x1b1a19)], 0, 0.36, 0);
+  const sleeve = imageTexture('images/cohen-songs-from-the-road.jpg', 64, 64, (c, w, h) => { c.fillStyle = '#d9d6d0'; c.fillRect(0, 0, w, h); });
+  const lp = mesh(new THREE.BoxGeometry(0.72, 0.72, 0.02), [mat(0xd9d6d0), mat(0xd9d6d0), mat(0xd9d6d0), mat(0xd9d6d0), new THREE.MeshStandardMaterial({ map: sleeve, roughness: 0.6 }), mat(0xd9d6d0)], 0, 0.36, 0);
   g.add(lp);
-  const disc = cyl(0.33, 0.33, 0.012, mat(0x0d0d0e, { roughness: 0.25 }), 0.22, 0.4, -0.02, 48);
+  const disc = cyl(0.33, 0.33, 0.012, mat(0x0d0d0e, { roughness: 0.25, metalness: 0.2 }), 0.22, 0.4, -0.02, 64);
   disc.rotation.x = Math.PI / 2;
+  for (const r of [0.31, 0.26, 0.2, 0.14]) { const groove = mesh(new THREE.TorusGeometry(r, 0.0025, 4, 64), mat(0x2a2a2c, { roughness: 0.2 }), 0.22, 0.4, -0.012); g.add(groove); }
   g.add(disc);
   g.position.set(s.x + s.w * 0.25, s.y, CASE_D / 2 + 0.2);
   g.rotation.set(-0.12, -0.1, 0);
@@ -956,64 +949,30 @@ books(slots[3][0], 0.5, 0.95, 3);
 })();
 
 // ---------- the Pomeranian ----------
-(function pomeranian() { // Wookie: orange sable Pomeranian, cream face and tail plume
+(function pomeranian() { // Wookie, cut out from ANGIE's own photo and stood in the room facing the camera
   const g = new THREE.Group();
-  const fur = mat(0xc8692a, { roughness: 1 });
-  const chest = mat(0xdc8f4c, { roughness: 1 });
-  const sable = mat(0x7d3f1a, { roughness: 1 });
-  const cream = mat(0xf1dfbf, { roughness: 1 });
-  const dark = mat(0x14100d, { roughness: 0.25 });
-  const fluffGeo = new THREE.IcosahedronGeometry(1, 1);
-  const tuft = (r, m, x, y, z) => { const t = mesh(fluffGeo, m, x, y, z); t.scale.set(r * (0.9 + rand() * 0.2), r * (0.9 + rand() * 0.2), r); t.rotation.set(rand() * 3, rand() * 3, 0); return t; };
-  // sitting body
-  const body = new THREE.Group();
-  body.add(tuft(0.4, fur, 0, 0.38, -0.06));
-  body.add(tuft(0.34, chest, 0, 0.7, 0.04));
-  for (let i = 0; i < 18; i++) { // big mane around the chest and neck
-    const a = (i / 18) * Math.PI * 2;
-    const m = Math.sin(a) > 0.3 ? chest : (i % 4 ? fur : sable);
-    body.add(tuft(0.14 + rand() * 0.07, m, Math.cos(a) * 0.36, 0.9 + Math.sin(a * 2) * 0.05, Math.sin(a) * 0.26 + 0.06));
-  }
-  body.add(tuft(0.22, chest, 0, 0.62, 0.26));
-  body.add(tuft(0.16, sable, 0, 0.62, -0.32)); // darker sable along the back
-  // slim front legs, cream-tipped paws
-  [-0.12, 0.12].forEach(x => { body.add(cyl(0.055, 0.065, 0.4, chest, x, 0.2, 0.24, 10)); body.add(tuft(0.075, mat(0xe8c79a, { roughness: 1 }), x, 0.04, 0.3)); });
-  [-0.29, 0.29].forEach(x => body.add(tuft(0.19, fur, x, 0.2, -0.04)));
-  g.add(body);
-  // head: fox-like face, cream muzzle mask, dark eyes and nose, tongue out
-  const head = new THREE.Group();
-  head.add(tuft(0.25, fur, 0, 0, 0));
-  for (let i = 0; i < 11; i++) { const a = (i / 11) * Math.PI * 2; head.add(tuft(0.1, i % 3 ? fur : sable, Math.cos(a) * 0.25, Math.sin(a) * 0.21, -0.05)); }
-  head.add(tuft(0.065, sable, 0, 0.16, 0.14)); // darker forehead
-  head.add(tuft(0.12, cream, 0, -0.08, 0.17)); // muzzle
-  const snout = sphere(0.07, cream, 0, -0.07, 0.25);
-  snout.scale.set(1, 0.8, 1);
-  head.add(snout);
-  head.add(sphere(0.04, dark, 0, -0.035, 0.32)); // nose
-  head.add(sphere(0.03, mat(0x3a2418, { roughness: 1 }), -0.06, -0.13, 0.24)); // dark lip shading
-  head.add(sphere(0.03, mat(0x3a2418, { roughness: 1 }), 0.06, -0.13, 0.24));
-  [-0.095, 0.095].forEach(x => {
-    head.add(sphere(0.042, dark, x, 0.055, 0.22));
-    head.add(sphere(0.012, mat(0xffffff), x + 0.014, 0.07, 0.258));
-    const ear = new THREE.Group();
-    ear.add(mesh(new THREE.ConeGeometry(0.08, 0.19, 10), fur, 0, 0, 0));
-    ear.add(mesh(new THREE.ConeGeometry(0.035, 0.08, 8), sable, 0, 0.07, 0));
-    ear.position.set(x * 1.55, 0.27, -0.02);
-    ear.rotation.z = -x * 2.3;
-    head.add(ear);
+  const H = 1.5, W = H * 448 / 639;
+  const tex = new THREE.TextureLoader().load('images/wookie-cutout.png');
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
+  const photo = new THREE.Group();
+  const card = mesh(new THREE.PlaneGeometry(W, H), new THREE.MeshStandardMaterial({ map: tex, alphaTest: 0.35, transparent: true, roughness: 1, side: THREE.DoubleSide }), 0, H / 2 - 0.02, 0);
+  card.castShadow = false;
+  photo.add(card);
+  g.add(photo);
+  // soft contact shadow on the floor
+  const shadowTex = canvasTexture(128, 64, (c, w, h) => {
+    const r = c.createRadialGradient(w / 2, h / 2, 2, w / 2, h / 2, w / 2);
+    r.addColorStop(0, 'rgba(0,0,0,.55)'); r.addColorStop(1, 'rgba(0,0,0,0)');
+    c.fillStyle = r; c.fillRect(0, 0, w, h);
   });
-  const tongue = mesh(new THREE.SphereGeometry(0.045, 12, 8), mat(0xe57a90, { roughness: 0.4 }), 0, -0.17, 0.26);
-  tongue.scale.set(0.9, 1.1, 0.45);
-  head.add(tongue);
-  head.position.set(0, 1.17, 0.1);
-  g.add(head);
-  // cream plumed tail curled over the back, sable tips
-  const tail = new THREE.Group();
-  for (let i = 0; i < 9; i++) { const t = i / 8; tail.add(tuft(0.11 + Math.sin(t * Math.PI) * 0.1, i > 6 ? sable : (i % 2 ? cream : mat(0xe9d0a8, { roughness: 1 })), Math.sin(t * 2.4) * 0.24, 0.1 + t * 0.45 - t * t * 0.28, -t * 0.16)); }
-  tail.position.set(0.16, 0.6, -0.36);
-  g.add(tail);
+  const shadow = mesh(new THREE.PlaneGeometry(W * 1.25, 0.6), new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false }), 0, 0.012, 0.05);
+  shadow.rotation.x = -Math.PI / 2;
+  shadow.castShadow = false;
+  g.add(shadow);
+  const tail = new THREE.Group(); // kept for the wag animation hook
   pieces.pom = g;
-  pieces.pomHead = head;
+  pieces.pomHead = photo;
   pieces.pomTail = tail;
   scene.add(g);
   register(g, 'pup', 'Wookie', { panel: 'wookie', lift: 0.02 });
@@ -1035,8 +994,8 @@ function layout() {
     place(pieces.painting, 0.8, 5.1, 0, 0.8);
     place(pieces.bookcase, 4.75, 0, 0);
     place(pieces.dj, -1.3, 0, 0.9, 1.12);
-    place(pieces.pom, 1.35, 0, 2.3, 0.72);
-    pieces.pom.rotation.y = -0.35;
+    place(pieces.pom, 1.25, 0, 2.3, 1.05);
+    pieces.pom.rotation.y = 0;
     rect = { x0: -8.3, x1: 8.5, y0: -1.3, y1: 9.1 };
   } else {
     place(pieces.shelf, -0.4, 12.2, 0, 0.9);
@@ -1046,8 +1005,8 @@ function layout() {
     place(pieces.painting, 2.85, 9.75, 0, 0.6);
     place(pieces.bookcase, 0, 0, 0, 0.95);
     place(pieces.dj, -0.6, 0, 2.6, 1.0);
-    place(pieces.pom, 2.1, 0, 3.2, 0.68);
-    pieces.pom.rotation.y = -0.5;
+    place(pieces.pom, 2.1, 0, 3.2, 0.95);
+    pieces.pom.rotation.y = 0;
     rect = { x0: -3.7, x1: 3.7, y0: -2.8, y1: 14.8 };
   }
   // fit the rectangle on the wall plane
@@ -1217,7 +1176,7 @@ function frame() {
     pieces.platters.forEach((pl, i) => { pl.rotation.y -= dt * (i ? 3.5 : 3.2); });
     const beat = Math.pow(Math.max(0, Math.sin(time * Math.PI * 2 * 2)), 8);
     pieces.cones.forEach(c => { c.position.z = 0.305 + beat * 0.012; });
-    pieces.pomHead.rotation.z = Math.sin(time * 0.8) * 0.06;
+    pieces.pomHead.rotation.z = Math.sin(time * 0.8) * 0.015;
     pieces.pomTail.rotation.y = Math.sin(time * (anim.wag > 0 ? 18 : 2)) * (anim.wag > 0 ? 0.5 : 0.12);
     pieces.flag.rotation.x = hovered === 'contact' ? -1.2 : 0;
   }
