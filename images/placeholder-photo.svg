@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <defs><pattern id="s" width="34" height="34" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="34" height="34" fill="#efe4d2"/><rect width="17" height="34" fill="#e8dac3"/></pattern></defs>
+  <rect width="800" height="600" fill="url(#s)"/>
+  <g fill="none" stroke="#9a7b48" stroke-width="10" stroke-linejoin="round" opacity=".8">
+    <rect x="310" y="215" width="180" height="140" rx="14"/>
+    <path d="M318 340l52-58 40 42 26-26 46 42"/>
+  </g>
+  <circle cx="452" cy="255" r="14" fill="#9a7b48" opacity=".8"/>
+  <text x="400" y="410" text-anchor="middle" font-family="Georgia, serif" font-size="34" fill="#7d6238">Photo</text>
+</svg>

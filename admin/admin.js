@@ -94,7 +94,7 @@
     frame.srcdoc = '<!doctype html><html><head><meta charset="utf-8"><base href="/">' +
       '<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&family=Caveat:wght@500;700&family=Playfair+Display:wght@400;600&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">' +
       '<link rel="stylesheet" href="css/style.css"><style>html,body{overflow:auto!important;height:auto!important}body{padding:24px 12px;background:#272c52;margin:0}' +
-      '.panel{position:static;display:block;max-height:none;margin:0 auto;animation:none!important}.panel-body{outline:none;min-height:300px}img{max-width:100%}.panel-body img,.panel-body video,.panel-body a{cursor:pointer}.panel-body img:hover,.panel-body a:hover,.vaw-sel{outline:3px solid #c9a96a!important;outline-offset:3px}</style></head>' +
+      '.panel{position:static;display:block;max-height:none;margin:0 auto;animation:none!important}.panel-body{outline:none;min-height:300px}img{max-width:100%}.panel-body img,.panel-body video,.panel-body a{cursor:pointer}.panel-body iframe{pointer-events:none}.panel-body img:hover,.panel-body video:hover,.panel-body a:hover,.vaw-sel{outline:3px solid #c9a96a!important;outline-offset:3px}</style></head>' +
       '<body class="mode-3d"><dialog class="panel" id="panel-' + k + '" open><div class="panel-body" contenteditable="true"></div></dialog></body></html>';
     frame.onload = function () {
       var body = editable();
@@ -106,6 +106,7 @@
       // clicking a photo, video or link opens the bar to replace it
       fd.addEventListener('click', function (e) {
         var t = e.target.closest && e.target.closest('img, video, audio, a');
+        if (!t && e.target.querySelector) t = e.target.querySelector(':scope > iframe'); // clicks on an embed land on its box
         if (t && body.contains(t)) { e.preventDefault(); showObjBar(t); } else hideObjBar();
       });
       fd.addEventListener('scroll', placeObjBar);
@@ -180,6 +181,8 @@
     else if (b.dataset.act === 'file') pickFiles(function (items) {
       items.forEach(function (it) { insertHTML(embedFor(it)); });
     }, '');
+    else if (b.dataset.act === 'addphoto') addBox('photo');
+    else if (b.dataset.act === 'addvideo') addBox('video');
     else if (b.dataset.act === 'video') {
       var v = prompt('Paste a YouTube, Vimeo or SoundCloud link'); if (!v) return;
       var src = embedURL(v.trim());
@@ -279,13 +282,14 @@
 
   // floating bar over a clicked photo / video / link in the editor
   var objTarget = null;
-  function isMedia(el) { return /^(IMG|VIDEO|AUDIO)$/.test(el.tagName); }
+  function isMedia(el) { return /^(IMG|VIDEO|AUDIO|IFRAME)$/.test(el.tagName); }
   function showObjBar(el) {
     if (objTarget) objTarget.classList.remove('vaw-sel');
     objTarget = el; el.classList.add('vaw-sel');
-    var media = isMedia(el);
-    $('objKind').textContent = el.tagName === 'IMG' ? 'Photo' : el.tagName === 'A' ? 'Link or button' : el.tagName === 'VIDEO' ? 'Video' : 'Music';
-    $('objReplace').textContent = el.tagName === 'IMG' ? 'Upload a new photo' : el.tagName === 'A' ? 'Link it to an uploaded file' : 'Upload a replacement';
+    var media = isMedia(el), video = el.tagName === 'VIDEO' || el.tagName === 'IFRAME';
+    $('objKind').textContent = el.tagName === 'IMG' ? 'Photo' : el.tagName === 'A' ? 'Link or button' : video ? 'Video' : 'Music';
+    $('objReplace').textContent = el.tagName === 'IMG' ? 'Upload a new photo' : el.tagName === 'A' ? 'Link it to an uploaded file' : video ? 'Upload a video' : 'Upload a replacement';
+    $('objEmbed').hidden = !video;
     $('objLink').hidden = media;
     $('objText').hidden = media;
     $('objAlt').hidden = el.tagName !== 'IMG';
@@ -312,7 +316,8 @@
     } else if (el.tagName === 'IMG' && /^image\//.test(it.type)) {
       el.setAttribute('src', it.url); el.removeAttribute('srcset');
     } else if (/^(video|audio)\//.test(it.type) && el.tagName !== 'IMG' && el.tagName === it.type.split('/')[0].toUpperCase()) {
-      el.setAttribute('src', it.url);
+      el.setAttribute('src', it.url); el.setAttribute('preload', 'metadata');
+      if (/placeholder-video/.test(el.getAttribute('poster') || '')) el.removeAttribute('poster');
     } else {
       var d = frame.contentDocument.createElement('div'); d.innerHTML = embedFor(it);
       var node = d.querySelector('img, video, audio, a') || d.firstChild;
@@ -323,7 +328,7 @@
   $('objReplace').addEventListener('click', function () {
     // a <label for="fileInput">: the browser opens the chooser; we decide what happens with the file
     var el = objTarget;
-    prepPicker(function (items) { if (el && items[0]) replaceWith(el, items[0]); hideObjBar(); }, el && el.tagName === 'IMG' ? 'image/*' : '');
+    prepPicker(function (items) { if (el && items[0]) replaceWith(el, items[0]); hideObjBar(); }, !el ? '' : el.tagName === 'IMG' ? 'image/*' : /^(VIDEO|IFRAME)$/.test(el.tagName) ? 'video/*' : '');
   });
   $('objLink').addEventListener('click', function () {
     var el = objTarget; if (!el) return;
@@ -350,6 +355,53 @@
     markDirty(); hideObjBar();
   });
   $('objClose').addEventListener('click', hideObjBar);
+  $('objEmbed').addEventListener('click', function () {
+    var el = objTarget; if (!el) return;
+    var v = prompt('Paste a YouTube or Vimeo link'); if (!v) return;
+    var src = embedURL(v.trim());
+    if (!src || /soundcloud/.test(src)) { toast('That isn\'t a YouTube or Vimeo link'); return; }
+    if (el.tagName === 'IFRAME') el.setAttribute('src', src);
+    else {
+      var f = frame.contentDocument.createElement('iframe');
+      f.setAttribute('src', src); f.setAttribute('allow', 'autoplay; fullscreen; picture-in-picture'); f.setAttribute('allowfullscreen', ''); f.setAttribute('loading', 'lazy');
+      el.parentNode.replaceChild(f, el);
+    }
+    markDirty(); hideObjBar();
+  });
+
+  // + Photo box / + Video box: add an empty box next to the clicked one (or to the section's gallery)
+  function caretNode() {
+    var sel = frame.contentWindow.getSelection(), body = editable();
+    var n = sel && sel.rangeCount ? sel.getRangeAt(0).startContainer : null;
+    if (n && n.nodeType === 3) n = n.parentNode;
+    return n && body && body.contains(n) && n !== body ? n : null;
+  }
+  function addBox(kind) {
+    var body = editable();
+    if (!body || PLAIN[current]) { toast('Choose a section first'); return; }
+    if (codeMode) { toast('Switch off HTML view to use this'); return; }
+    var doc = frame.contentDocument;
+    var anchor = objTarget && body.contains(objTarget) ? objTarget : caretNode();
+    hideObjBar();
+    var grid = anchor && anchor.closest(kind === 'photo' ? '.gallery' : '.video-grid, .gallery');
+    if (!grid) grid = body.querySelector(kind === 'photo' ? '.gallery' : '.video-grid');
+    var fig = anchor && anchor.closest('figure');
+    var tmp = doc.createElement('div');
+    tmp.innerHTML = kind === 'photo'
+      ? '<figure><img src="images/placeholder-photo.svg" alt="" loading="lazy">' + (!grid || grid.querySelector('figcaption') ? '<figcaption>[Title, year]</figcaption>' : '') + '</figure>'
+      : '<figure class="video-box"><video controls playsinline preload="none" poster="images/placeholder-video.svg"></video><figcaption>[Video title, year]</figcaption></figure>';
+    var box = tmp.firstChild;
+    if (grid) {
+      if (fig && fig.parentNode === grid) grid.insertBefore(box, fig.nextSibling); else grid.appendChild(box);
+    } else {
+      var wrap = doc.createElement('div'); wrap.className = kind === 'photo' ? 'gallery' : 'video-grid'; wrap.appendChild(box);
+      var block = anchor; while (block && block.parentNode !== body) block = block.parentNode;
+      body.insertBefore(wrap, block ? block.nextSibling : null);
+    }
+    markDirty();
+    box.scrollIntoView({ block: 'center' });
+    showObjBar(box.querySelector('img, video'));
+  }
   function embedFor(it) {
     var u = esc(it.url), name = esc(it.name);
     if (/^image\//.test(it.type)) return '<p><img src="' + u + '" alt="" loading="lazy" style="max-width:100%;border-radius:6px"></p>';

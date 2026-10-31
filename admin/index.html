@@ -149,11 +149,14 @@
               <button data-act="file" title="Upload music, a video or a PDF and add it here">File</button>
               <button data-act="video" title="Embed YouTube / Vimeo / SoundCloud">Embed</button>
               <span class="sep"></span>
+              <button data-act="addphoto" title="Add another photo box next to the one you clicked">+ Photo box</button>
+              <button data-act="addvideo" title="Add a video box">+ Video box</button>
+              <span class="sep"></span>
               <button data-cmd="undo" title="Undo">↶</button>
               <button data-cmd="redo" title="Redo">↷</button>
               <button data-act="html" title="Edit the raw HTML">HTML</button>
             </div>
-            <p class="tip">Tip: click any photo to upload a new one. Click a link or button to change where it goes.</p>
+            <p class="tip">Tip: click any photo or video to upload a new one. Use + Photo box or + Video box to add more. Click a link or button to change where it goes.</p>
             <iframe class="canvas" id="canvas" title="Section editor"></iframe>
             <textarea class="code" id="code" hidden spellcheck="false"></textarea>
             <div class="plain" id="plain" hidden><label class="muted" for="plainText">Text</label><textarea id="plainText"></textarea></div>
@@ -180,6 +183,7 @@
   <div class="objbar" id="objbar" hidden role="toolbar" aria-label="Selected item">
     <strong id="objKind">Photo</strong>
     <label class="btn primary" id="objReplace" for="fileInput" role="button" tabindex="0">Upload a new photo</label>
+    <button class="btn" id="objEmbed" type="button">YouTube / Vimeo link</button>
     <button class="btn" id="objLink" type="button">Change link</button>
     <button class="btn" id="objText" type="button">Change text</button>
     <button class="btn" id="objAlt" type="button">Description</button>

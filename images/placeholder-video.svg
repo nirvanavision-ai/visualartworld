@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+  <rect width="1600" height="900" fill="#1d2142"/>
+  <rect x="24" y="24" width="1552" height="852" rx="18" fill="none" stroke="#c9a96a" stroke-width="4" stroke-dasharray="22 16" opacity=".55"/>
+  <circle cx="800" cy="410" r="96" fill="#c9a96a" opacity=".9"/>
+  <path d="M770 360l84 50-84 50z" fill="#1d2142"/>
+  <text x="800" y="580" text-anchor="middle" font-family="Georgia, serif" font-size="54" fill="#e9dcc3">Video</text>
+</svg>
