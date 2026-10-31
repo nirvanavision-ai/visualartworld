@@ -1,0 +1,6 @@
+{
+  // Cloudflare Workers static site: serves the repo root as-is (no build step)
+  "name": "visualartworld",
+  "compatibility_date": "2025-10-01",
+  "assets": { "directory": "./" }
+}
