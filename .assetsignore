@@ -4,3 +4,5 @@
 wrangler.jsonc
 node_modules
 *.md
+.gitignore
+.wrangler
