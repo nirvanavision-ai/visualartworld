@@ -154,9 +154,12 @@
       if (!/^(https?:|mailto:|tel:|\/|#)/i.test(u)) u = 'https://' + u;
       exec('createLink', u);
       frame.contentDocument.querySelectorAll('a[href^="http"]').forEach(function (a) { a.target = '_blank'; a.rel = 'noopener'; });
-    } else if (b.dataset.act === 'image') pickFiles(function (urls) {
-      urls.forEach(function (u) { insertHTML('<p><img src="' + u + '" alt="" loading="lazy" style="max-width:100%;border-radius:6px"></p>'); });
-    }, false);
+    } else if (b.dataset.act === 'image') pickFiles(function (items) {
+      items.forEach(function (it) { insertHTML(embedFor(it)); });
+    }, 'image/*');
+    else if (b.dataset.act === 'file') pickFiles(function (items) {
+      items.forEach(function (it) { insertHTML(embedFor(it)); });
+    }, '');
     else if (b.dataset.act === 'video') {
       var v = prompt('Paste a YouTube, Vimeo or SoundCloud link'); if (!v) return;
       var src = embedURL(v.trim());
@@ -172,49 +175,85 @@
     return null;
   }
 
-  // ---------- photos ----------
-  function shrink(file) {
-    // keep animated GIFs and already-small files as they are; otherwise resize to 2000px and re-encode
-    if (file.type === 'image/gif' || (file.size < 900e3 && /image\/(jpeg|webp|png)/.test(file.type))) return Promise.resolve(file);
+  // ---------- files ----------
+  var EXT_TYPES = { heic: 'image/heic', heif: 'image/heif', mp3: 'audio/mpeg', m4a: 'audio/mp4', wav: 'audio/wav', aac: 'audio/aac', flac: 'audio/flac', ogg: 'audio/ogg',
+    mp4: 'video/mp4', mov: 'video/quicktime', webm: 'video/webm', m4v: 'video/mp4', pdf: 'application/pdf', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', gif: 'image/gif' };
+  function typeOf(file) { return file.type || EXT_TYPES[(file.name.split('.').pop() || '').toLowerCase()] || 'application/octet-stream'; }
+  function shrink(file, type) {
+    // big photos are resized to 2400px so pages stay fast; anything the browser can't decode is uploaded as-is
+    if (!/^image\/(jpeg|png|webp)$/.test(type) || file.size < 1.5e6) return Promise.resolve(file);
     return createImageBitmap(file).then(function (bmp) {
-      var k = Math.min(1, 2000 / Math.max(bmp.width, bmp.height));
+      var k = Math.min(1, 2400 / Math.max(bmp.width, bmp.height));
       var c = document.createElement('canvas'); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
       c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
-      return new Promise(function (res) { c.toBlob(function (b) { res(b); }, 'image/webp', 0.85); }).then(function (b) {
-        return b && b.type === 'image/webp' ? b : new Promise(function (res) { c.toBlob(res, 'image/jpeg', 0.85); });
+      return new Promise(function (res) { c.toBlob(res, 'image/webp', 0.86); }).then(function (b) {
+        return b && b.type === 'image/webp' ? b : new Promise(function (res) { c.toBlob(res, 'image/jpeg', 0.86); });
       });
+    }).then(function (b) { return b && b.size < file.size ? b : file; }, function () { return file; });
+  }
+  function send(blob, type, name, label) {
+    // XHR rather than fetch so we can show upload progress for big videos
+    return new Promise(function (resolve, reject) {
+      var x = new XMLHttpRequest();
+      x.open('POST', '/api/media');
+      x.setRequestHeader('x-vaw', '1');
+      x.setRequestHeader('content-type', blob.type || type);
+      x.setRequestHeader('x-filename', encodeURIComponent(name));
+      x.upload.onprogress = function (e) { if (e.lengthComputable) toast(label + ' ' + Math.round(e.loaded / e.total * 100) + '%'); };
+      x.onload = function () {
+        var b = {}; try { b = JSON.parse(x.responseText); } catch (e) {}
+        if (x.status === 401) showLogin();
+        if (x.status >= 200 && x.status < 300) resolve(b); else reject(new Error(b.error || 'Upload failed (' + x.status + ')'));
+      };
+      x.onerror = function () { reject(new Error('Upload failed. Check your connection and try again.')); };
+      x.send(blob);
     });
   }
-  function upload(file) {
-    return shrink(file).then(function (blob) {
-      return api('/api/media', { method: 'POST', body: blob, headers: { 'content-type': blob.type || file.type, 'x-filename': encodeURIComponent(file.name) } });
-    }).then(function (b) { return b.url; });
+  function upload(file, label) {
+    var type = typeOf(file);
+    if (file.size > 95 * 1024 * 1024) return Promise.reject(new Error(file.name + ' is over 95 MB. Please compress it first.'));
+    return shrink(file, type).then(function (blob) { return send(blob, type, file.name, label); })
+      .then(function (b) { return { url: b.url, type: b.type || type, name: file.name }; });
   }
-  function pickFiles(done) {
+  function pickFiles(done, accept) {
     var input = $('fileInput');
     input.value = '';
+    if (accept) input.setAttribute('accept', accept); else input.removeAttribute('accept');
     input.onchange = function () {
       var files = Array.prototype.slice.call(input.files); if (!files.length) return;
-      toast('Uploading ' + files.length + (files.length > 1 ? ' photos…' : ' photo…'));
-      files.reduce(function (p, f) { return p.then(function (acc) { return upload(f).then(function (u) { return acc.concat(u); }); }); }, Promise.resolve([]))
-        .then(function (urls) { toast('Uploaded'); done(urls); })
+      var heic = files.some(function (f) { return /hei[cf]$/i.test(f.name); });
+      files.reduce(function (p, f, i) {
+        return p.then(function (acc) { return upload(f, 'Uploading ' + (files.length > 1 ? (i + 1) + ' of ' + files.length : f.name)).then(function (it) { return acc.concat(it); }); });
+      }, Promise.resolve([]))
+        .then(function (items) { toast(heic ? 'Uploaded. Note: HEIC photos only show in Safari, so save them as JPG for everyone else.' : 'Uploaded'); done(items); })
         .catch(function (err) { toast(err.message); });
     };
     input.click();
   }
+  function embedFor(it) {
+    var u = esc(it.url), name = esc(it.name);
+    if (/^image\//.test(it.type)) return '<p><img src="' + u + '" alt="" loading="lazy" style="max-width:100%;border-radius:6px"></p>';
+    if (/^audio\//.test(it.type)) return '<p><audio controls preload="none" src="' + u + '" style="width:100%"></audio></p><p></p>';
+    if (/^video\//.test(it.type)) return '<p><video controls preload="metadata" playsinline src="' + u + '" style="width:100%;border-radius:6px"></video></p><p></p>';
+    return '<p><a href="' + u + '" target="_blank" rel="noopener">' + name + '</a></p>';
+  }
+  function size(n) { return n > 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB'; }
   function loadPhotos() {
     api('/api/media').then(function (list) {
       $('photos').innerHTML = list.length ? list.map(function (m) {
-        return '<div class="ph"><img src="/api/media/' + m.id + '" alt="' + esc(decodeURIComponent(m.name || '')) + '" loading="lazy">' +
+        var name = esc(decodeURIComponent(m.name || 'file'));
+        var thumb = /^image\/(jpeg|png|webp|gif|avif)$/.test(m.type) ? '<img src="/api/media/' + m.id + '" alt="' + name + '" loading="lazy">'
+          : '<div class="file-icon"><span>' + esc((m.name || '').split('.').pop().slice(0, 5).toUpperCase() || 'FILE') + '</span></div>';
+        return '<div class="ph">' + thumb + '<p class="fname" title="' + name + '">' + name + ' <span class="muted">' + size(m.size) + '</span></p>' +
           '<div><button class="btn" data-copy="' + m.id + '">Copy link</button><button class="btn danger" data-del="' + m.id + '">Delete</button></div></div>';
-      }).join('') : '<div class="empty">No photos yet. Upload some to use them on your site.</div>';
+      }).join('') : '<div class="empty">No files yet. Upload photos, music, videos or PDFs to use them on your site.</div>';
     });
   }
-  $('uploadBtn').addEventListener('click', function () { pickFiles(function () { loadPhotos(); }); });
+  $('uploadBtn').addEventListener('click', function () { pickFiles(function () { loadPhotos(); }, ''); });
   $('photos').addEventListener('click', function (e) {
     var c = e.target.closest('[data-copy]'), d = e.target.closest('[data-del]');
     if (c) { navigator.clipboard.writeText(location.origin + '/api/media/' + c.dataset.copy).then(function () { toast('Link copied'); }); }
-    if (d && confirm('Delete this photo? Anywhere it is used on the site will show a broken image.')) api('/api/media/' + d.dataset.del, { method: 'DELETE' }).then(loadPhotos);
+    if (d && confirm('Delete this file? Anywhere it is used on the site will stop working.')) api('/api/media/' + d.dataset.del, { method: 'DELETE' }).then(loadPhotos);
   });
 
   // ---------- inbox ----------

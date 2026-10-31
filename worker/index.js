@@ -5,8 +5,10 @@ import { DurableObject } from 'cloudflare:workers';
 
 const COOKIE = 'vaw_admin';
 const SESSION_DAYS = 14;
-const MAX_IMAGE = 1.9 * 1024 * 1024; // a single SQLite value tops out at 2 MB
-const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const MAX_FILE = 95 * 1024 * 1024; // Workers accept request bodies up to 100 MB
+const CHUNK = 1536 * 1024; // a single SQLite value tops out at 2 MB, so files are stored in chunks
+// shown in the browser; anything else (html, svg, scripts, zips…) is only offered as a download
+const INLINE = /^(image\/(jpeg|png|webp|gif|avif)|audio\/[\w.+-]+|video\/[\w.+-]+|application\/pdf)$/;
 
 export class SiteStore extends DurableObject {
   constructor(ctx, env) {
@@ -17,7 +19,9 @@ export class SiteStore extends DurableObject {
       CREATE TABLE IF NOT EXISTS media (id TEXT PRIMARY KEY, type TEXT NOT NULL, name TEXT, size INTEGER, data BLOB NOT NULL, created INTEGER NOT NULL);
       CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, email TEXT, body TEXT NOT NULL, created INTEGER NOT NULL, read INTEGER NOT NULL DEFAULT 0);
       CREATE TABLE IF NOT EXISTS hits (bucket TEXT PRIMARY KEY, n INTEGER NOT NULL, expires INTEGER NOT NULL);
+      CREATE TABLE IF NOT EXISTS media_chunks (id TEXT NOT NULL, n INTEGER NOT NULL, data BLOB NOT NULL, PRIMARY KEY (id, n));
     `);
+    try { this.sql.exec('ALTER TABLE media ADD COLUMN chunks INTEGER NOT NULL DEFAULT 0'); } catch (e) { /* already added */ }
   }
 
   // content
@@ -31,18 +35,24 @@ export class SiteStore extends DurableObject {
   }
   resetContent(key) { this.sql.exec('DELETE FROM content WHERE key = ?', key); }
 
-  // media
-  putMedia(type, name, data) {
+  // media: small early uploads live in media.data; everything else in media_chunks (chunks > 0)
+  beginMedia(type, name) {
     const id = crypto.randomUUID().replace(/-/g, '');
-    this.sql.exec('INSERT INTO media (id, type, name, size, data, created) VALUES (?, ?, ?, ?, ?, ?)', id, type, name, data.byteLength, data, Date.now());
+    this.sql.exec('INSERT INTO media (id, type, name, size, data, created, chunks) VALUES (?, ?, ?, 0, ?, ?, -1)', id, type, name, new Uint8Array(0), Date.now());
     return id;
   }
-  getMedia(id) {
-    const r = this.sql.exec('SELECT type, data FROM media WHERE id = ?', id).toArray()[0];
-    return r ? { type: r.type, data: r.data } : null;
+  putChunk(id, n, data) { this.sql.exec('INSERT OR REPLACE INTO media_chunks (id, n, data) VALUES (?, ?, ?)', id, n, data); }
+  finishMedia(id, size, chunks) { this.sql.exec('UPDATE media SET size = ?, chunks = ? WHERE id = ?', size, chunks, id); }
+  mediaInfo(id) {
+    const r = this.sql.exec('SELECT type, name, size, chunks FROM media WHERE id = ? AND chunks >= 0', id).toArray()[0];
+    return r || null;
   }
-  listMedia() { return this.sql.exec('SELECT id, type, name, size, created FROM media ORDER BY created DESC').toArray(); }
-  deleteMedia(id) { this.sql.exec('DELETE FROM media WHERE id = ?', id); }
+  getChunk(id, n) {
+    const r = n < 0 ? this.sql.exec('SELECT data FROM media WHERE id = ?', id).toArray()[0] : this.sql.exec('SELECT data FROM media_chunks WHERE id = ? AND n = ?', id, n).toArray()[0];
+    return r ? r.data : null;
+  }
+  listMedia() { return this.sql.exec('SELECT id, type, name, size, created FROM media WHERE chunks >= 0 ORDER BY created DESC').toArray(); }
+  deleteMedia(id) { this.sql.exec('DELETE FROM media_chunks WHERE id = ?', id); this.sql.exec('DELETE FROM media WHERE id = ?', id); }
 
   // contact messages
   addMessage(name, email, body) {
@@ -134,6 +144,50 @@ async function notify(env, msg) {
   }).catch(() => {});
 }
 
+// stream a stored file, with Range support so audio and video can seek
+async function serveMedia(req, store, id) {
+  const info = await store.mediaInfo(id);
+  if (!info) return fail(404, 'Not found');
+  const inline = INLINE.test(info.type);
+  const headers = {
+    'content-type': inline ? info.type : 'application/octet-stream',
+    'cache-control': 'public, max-age=31536000, immutable',
+    'x-content-type-options': 'nosniff',
+    'accept-ranges': 'bytes',
+  };
+  if (info.type !== 'application/pdf') headers['content-security-policy'] = "default-src 'none'; style-src 'unsafe-inline'; sandbox";
+  if (!inline) headers['content-disposition'] = 'attachment; filename="' + (decodeURIComponent(info.name || 'file').replace(/[^\w. -]/g, '_') || 'file') + '"';
+  if (info.chunks === 0) { // stored whole, from before chunking
+    const data = await store.getChunk(id, -1);
+    headers['content-length'] = String(data.byteLength);
+    return new Response(req.method === 'HEAD' ? null : data, { headers });
+  }
+  let start = 0, end = info.size - 1, status = 200;
+  const m = (req.headers.get('range') || '').match(/^bytes=(\d*)-(\d*)$/);
+  if (m && (m[1] || m[2])) {
+    if (m[1]) { start = Number(m[1]); if (m[2]) end = Math.min(Number(m[2]), info.size - 1); }
+    else start = Math.max(0, info.size - Number(m[2]));
+    if (start > end || start >= info.size) return new Response(null, { status: 416, headers: { 'content-range': 'bytes */' + info.size } });
+    status = 206;
+    headers['content-range'] = `bytes ${start}-${end}/${info.size}`;
+  }
+  headers['content-length'] = String(end - start + 1);
+  if (req.method === 'HEAD') return new Response(null, { status, headers });
+  let n = Math.floor(start / CHUNK);
+  const last = Math.floor(end / CHUNK);
+  const body = new ReadableStream({
+    async pull(ctrl) {
+      if (n > last) { ctrl.close(); return; }
+      const data = new Uint8Array(await store.getChunk(id, n));
+      const from = n === Math.floor(start / CHUNK) ? start % CHUNK : 0;
+      const to = n === last ? (end % CHUNK) + 1 : data.byteLength;
+      ctrl.enqueue(data.subarray(from, to));
+      n++;
+    },
+  });
+  return new Response(body, { status, headers });
+}
+
 // ---------- routes ----------
 export default {
   async fetch(req, env, ctx) {
@@ -160,11 +214,7 @@ export default {
         return json(out, 200, { 'cache-control': 'public, max-age=30' });
       }
       const mediaMatch = path.match(/^\/api\/media\/([a-f0-9]{32})$/);
-      if (mediaMatch && method === 'GET') {
-        const m = await store.getMedia(mediaMatch[1]);
-        if (!m) return fail(404, 'Not found');
-        return new Response(m.data, { headers: { 'content-type': m.type, 'cache-control': 'public, max-age=31536000, immutable', 'x-content-type-options': 'nosniff' } });
-      }
+      if (mediaMatch && (method === 'GET' || method === 'HEAD')) return serveMedia(req, store, mediaMatch[1]);
       if (path === '/api/contact' && method === 'POST') {
         const b = await req.json().catch(() => ({}));
         if (b.website) return json({ ok: true }); // honeypot field filled in: a bot
@@ -210,12 +260,37 @@ export default {
       if (path === '/api/content/all' && method === 'GET') return json(await store.getContent());
 
       if (path === '/api/media' && method === 'POST') {
-        const type = (req.headers.get('content-type') || '').split(';')[0];
-        if (!IMAGE_TYPES.includes(type)) return fail(415, 'Use a JPG, PNG, WebP or GIF image.');
-        const data = await req.arrayBuffer();
-        if (data.byteLength > MAX_IMAGE) return fail(413, 'Image is too large (max about 1.9 MB).');
-        const id = await store.putMedia(type, (req.headers.get('x-filename') || '').slice(0, 120), data);
-        return json({ ok: true, id, url: '/api/media/' + id });
+        const type = ((req.headers.get('content-type') || '').split(';')[0].trim().toLowerCase()) || 'application/octet-stream';
+        if (Number(req.headers.get('content-length') || 0) > MAX_FILE) return fail(413, 'That file is too large (max 95 MB).');
+        if (!req.body) return fail(400, 'Empty file.');
+        const id = await store.beginMedia(type, (req.headers.get('x-filename') || '').slice(0, 200));
+        try {
+          // split the upload into chunks as it streams in
+          const reader = req.body.getReader();
+          let buf = new Uint8Array(CHUNK), fill = 0, n = 0, size = 0;
+          for (;;) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            size += value.byteLength;
+            if (size > MAX_FILE) throw new RangeError('too large');
+            let off = 0;
+            while (off < value.byteLength) {
+              const take = Math.min(CHUNK - fill, value.byteLength - off);
+              buf.set(value.subarray(off, off + take), fill);
+              fill += take; off += take;
+              if (fill === CHUNK) { await store.putChunk(id, n++, buf); buf = new Uint8Array(CHUNK); fill = 0; }
+            }
+          }
+          if (fill) await store.putChunk(id, n++, buf.slice(0, fill));
+          if (!size) throw new TypeError('empty');
+          await store.finishMedia(id, size, n);
+        } catch (e) {
+          await store.deleteMedia(id);
+          if (e instanceof RangeError) return fail(413, 'That file is too large (max 95 MB).');
+          if (e instanceof TypeError && e.message === 'empty') return fail(400, 'Empty file.');
+          throw e;
+        }
+        return json({ ok: true, id, type, url: '/api/media/' + id });
       }
       if (path === '/api/media' && method === 'GET') return json(await store.listMedia());
       if (mediaMatch && method === 'DELETE') { await store.deleteMedia(mediaMatch[1]); return json({ ok: true }); }

@@ -78,6 +78,9 @@
     .ph img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; background: #eee; }
     .ph div { display: flex; gap: 6px; padding: 8px; }
     .ph button { flex: 1; font-size: 13px; padding: 6px; }
+    .ph .fname { margin: 0; padding: 8px 8px 0; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .file-icon { aspect-ratio: 1; display: grid; place-items: center; background: #eceaf6; }
+    .file-icon span { font-weight: 700; letter-spacing: .08em; color: var(--accent); background: #fff; padding: 10px 14px; border-radius: 8px; }
 
     .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 10px 18px; border-radius: 999px; font-size: 14px; z-index: 20; }
     @media (max-width: 800px) {
@@ -105,7 +108,7 @@
       <nav class="tabs" role="tablist">
         <button role="tab" data-tab="content" aria-selected="true">Content</button>
         <button role="tab" data-tab="inbox" aria-selected="false">Inbox <span class="badge" id="unread" hidden>0</span></button>
-        <button role="tab" data-tab="photos" aria-selected="false">Photos</button>
+        <button role="tab" data-tab="photos" aria-selected="false">Files</button>
       </nav>
       <a href="/" target="_blank" rel="noopener">View site ↗</a>
       <button class="btn" id="logout" type="button">Sign out</button>
@@ -134,7 +137,8 @@
               <button data-act="link" title="Add link">Link</button>
               <button data-cmd="unlink" title="Remove link">Unlink</button>
               <button data-act="image" title="Insert photo">Photo</button>
-              <button data-act="video" title="Embed YouTube / Vimeo / SoundCloud">Video</button>
+              <button data-act="file" title="Upload music, a video or a PDF and add it here">File</button>
+              <button data-act="video" title="Embed YouTube / Vimeo / SoundCloud">Embed</button>
               <span class="sep"></span>
               <button data-cmd="undo" title="Undo">↶</button>
               <button data-cmd="redo" title="Redo">↷</button>
@@ -154,15 +158,15 @@
 
       <section data-panel="photos" hidden>
         <div class="photos-head">
-          <button class="btn primary" id="uploadBtn" type="button">Upload photos</button>
-          <span class="muted">Photos are resized automatically. Use "Copy link" to put one anywhere, or the Photo button in the editor.</span>
+          <button class="btn primary" id="uploadBtn" type="button">Upload files</button>
+          <span class="muted">Photos, music, videos and PDFs up to 95 MB. Big photos are resized automatically. Use "Copy link", or the Photo and File buttons in the editor.</span>
         </div>
         <div class="grid" id="photos"></div>
       </section>
     </main>
   </div>
 
-  <input type="file" id="fileInput" accept="image/*" multiple hidden>
+  <input type="file" id="fileInput" multiple hidden>
   <div class="toast" id="toast" hidden></div>
 
   <script src="/admin/admin.js"></script>
